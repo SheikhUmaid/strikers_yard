@@ -1,0 +1,37 @@
+import axios from  "axios";
+
+
+// const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
+
+
+const authAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL, withCredentials: true,
+});
+
+
+
+// / Response interceptor for all APIs
+const handleResponse = (response) => response;
+const handleError = (error) => {
+  if (error.response?.status === 401) {
+    localStorage.removeItem('user');
+    window.location.href = '/auth';
+  }
+  console.error('API Error:', error);
+  return Promise.reject(error);
+};
+
+authAPI.interceptors.response.use(handleResponse, handleError);
+
+
+
+
+export const registerUser = (phone_number) => {
+  return authAPI.post("/auth/request-otp/", { phone_number });
+};
+
+
+export const verifyOTP = (phone_number, otp) => {
+  return authAPI.post("/auth/verify-otp/", { phone_number, otp });
+}

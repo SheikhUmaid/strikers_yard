@@ -1,0 +1,42 @@
+# React build files
+build/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Django specific files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+db.sqlite3
+*.sqlite3
+*.log
+*.pot
+*.mo
+*.py[cod]
+*.so
+*.env
+*.venv
+venv/
+ENV/
+env/
+*.egg-info/
+.installed.cfg
+*.egg
+*.manifest
+*.spec
+
+# IDE and editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
