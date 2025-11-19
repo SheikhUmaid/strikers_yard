@@ -1,19 +1,16 @@
-import { useState } from 'react'
-import PhoneOTPComponent from "./components/Register"
-import SportsBooking from './components/Bookings'
-
-
+import { useState } from "react";
+import SportsBooking from "./components/booking/SportsBooking";
+import PhoneOTPComponent from "./components/Register";
 function App() {
-  const [count, setCount] = useState(0)
+ 
 
   return (
-    <>
-      <PhoneOTPComponent/>
-      
 
-       <SportsBooking/>
+    <>
+    <PhoneOTPComponent/>
+   <SportsBooking/>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

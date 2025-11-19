@@ -24,6 +24,15 @@ const handleError = (error) => {
 
 authAPI.interceptors.response.use(handleResponse, handleError);
 
+authAPI.interceptors.request.use((config) => {
+  const token = localStorage.getItem('user'); // or wherever you store token
+  console.log(token)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 
 
 
@@ -35,3 +44,19 @@ export const registerUser = (phone_number) => {
 export const verifyOTP = (phone_number, otp) => {
   return authAPI.post("/auth/verify-otp/", { phone_number, otp });
 }
+
+// Inside your existing axios service file
+
+export const fetchSports = () => {
+  return authAPI.get("/services/");
+};
+// services.js (or axios service file)
+
+export const fetchSlots = (date, serviceId) => {
+  return authAPI.get('/slots/', {
+    params: { date, service_id: serviceId }
+  });
+};
+export const createBooking = (bookingData) => {
+  return authAPI.post('/bookings/', bookingData);
+};
