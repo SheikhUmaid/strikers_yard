@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { registerUser, verifyOTP } from '../services/api';
 
-export default function PhoneOTPComponent() {
+export default function PhoneOTPComponent({onSuccess}) {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [showOTP, setShowOTP] = useState(false);
     const [otp, setOTP] = useState('');
@@ -50,6 +50,15 @@ export default function PhoneOTPComponent() {
                 localStorage.setItem('user', JSON.stringify(response.data.user));
             }
 
+            if (response.data?.access) {
+                localStorage.setItem('access_token', response.data.access);
+            }
+            if (response.data?.refresh) {
+                localStorage.setItem('refresh_token', response.data.refresh);
+            }
+            if(onSuccess){
+                onSuccess()
+            }
             // Redirect or perform next action after successful verification
             // window.location.href = '/dashboard';
         } catch (error) {
@@ -73,8 +82,8 @@ export default function PhoneOTPComponent() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-overlay">
+            <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md animate-modal">
                 <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
                     Phone Verification
                 </h2>
@@ -146,6 +155,7 @@ export default function PhoneOTPComponent() {
                     )}
 
                     {/* Message Display */}
+
                     {message && (
                         <div
                             className={`p-4 rounded-lg text-center font-medium ${message.includes('success')
@@ -172,6 +182,23 @@ export default function PhoneOTPComponent() {
         }
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes overlayFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .animate-overlay {
+            animation: overlayFade 0.25s ease-out forwards;
+        }
+
+        .animate-modal {
+            animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
         </div>

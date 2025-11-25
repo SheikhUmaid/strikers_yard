@@ -95,6 +95,7 @@ class TimeSlot(models.Model):
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('partial', 'Partially Paid'),
         ('paid', 'Paid'),
         ('cancelled', 'Cancelled'),
     ]
@@ -118,7 +119,7 @@ class Booking(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user} - {self.service.name} ({self.date} {self.time_slot})"
+        return f"{self.user} - {self.service.name} ({self.date} {self.time_slot}) {self.status}"
 
 
 

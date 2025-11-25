@@ -374,7 +374,7 @@ export default function SportsBooking() {
                 PROCEED TO PAY
               </button>
               <button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-lg">
-                PAY PARTIAL (₹505/-)
+                PAY PARTIAL
               </button>
             </div>
           </div>

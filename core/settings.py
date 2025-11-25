@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from decimal import Decimal
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,6 +50,8 @@ CORS_ALLOW_CREDENTIALS = True
 # Razorpay credentials
 RAZORPAY_KEY_ID = "rzp_test_RdfrUJ69Of4i9F"
 RAZORPAY_KEY_SECRET = "BJ1NCxwSdYJl5gB252DSMyym"
+
+PARTIAL_PAYMENT_PERCENTAGE = Decimal('0.25')
 
 
 # Application definition
@@ -109,7 +112,7 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=365),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     
     'DEFAULT_AUTHENTICATION_CLASSES': (

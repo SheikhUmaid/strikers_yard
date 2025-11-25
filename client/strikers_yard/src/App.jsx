@@ -1,14 +1,20 @@
 import { useState } from "react";
 import SportsBooking from "./components/booking/SportsBooking";
 import PhoneOTPComponent from "./components/Register";
+import { Toaster } from "react-hot-toast";
 function App() {
  
 
   return (
 
+    // <>
+    // {/* <PhoneOTPComponent/> */}
+    // </>
+    
     <>
-    <PhoneOTPComponent/>
-   <SportsBooking/>
+      <Toaster position="top-center" />
+    {/* // <PhoneOTPComponent /> */}
+<SportsBooking/>
     </>
   );
 }

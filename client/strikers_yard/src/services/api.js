@@ -24,14 +24,18 @@ const handleError = (error) => {
 
 authAPI.interceptors.response.use(handleResponse, handleError);
 
+// authAPI.interceptors.request.use((config) => {
 authAPI.interceptors.request.use((config) => {
-  const token = localStorage.getItem('user'); // or wherever you store token
-  console.log(token)
+  const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }else{
+    
   }
   return config;
 });
+
+
 
 
 
@@ -59,4 +63,8 @@ export const fetchSlots = (date, serviceId) => {
 };
 export const createBooking = (bookingData) => {
   return authAPI.post('/bookings/', bookingData);
+};
+
+export const verifyPayment = (payload) => {
+  return authAPI.post('/verify-payment/', payload);
 };

@@ -20,12 +20,14 @@ from bookings.serializers import BookingSerializer, ServiceSerializer
 
 from django.conf import settings
 from datetime import datetime
+from decimal import Decimal
 
 
 
 
 
 import razorpay
+from rest_framework.permissions import AllowAny
 
 # razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -230,20 +232,21 @@ class BookingCreateView(generics.CreateAPIView):
     
 
     def create(self, request, *args, **kwargs):
-        print("TEST")
-        access_token = request.COOKIES.get("access_token")
-
-        if not access_token:
+        user = request.user
+        if not user or not user.is_authenticated:
             return Response(
-                {"error": "Access token missing in cookies."},
+                {"error": "Authentication credentials were not provided."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        print(request.COOKIES)
-        user = request.user
         service_id = request.data.get("service")
         time_slot_id = request.data.get("time_slot")
         date = request.data.get("date")
         duration_hours = int(request.data.get("duration_hours", 1))
+        is_partial_payment = request.data.get("is_partial_payment", False)
+        if isinstance(is_partial_payment, str):
+            is_partial_payment = is_partial_payment.lower() in ("true", "1", "yes")
+        else:
+            is_partial_payment = bool(is_partial_payment)
 
         if not all([service_id, time_slot_id, date]):
             return Response({"error": "Missing required fields (service, time_slot, date)."},
@@ -262,11 +265,13 @@ class BookingCreateView(generics.CreateAPIView):
         required_slots = all_slots[start_index:start_index + duration_hours]
 
         if len(required_slots) < duration_hours:
+            print("Required slots:", required_slots)
             return Response({"error": "Not enough consecutive slots available."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Check if any of those slots are already booked
         if Booking.objects.filter(time_slot__in=required_slots, date=date, service=service).exists():
+            print("Required slo2ts:", required_slots)
             return Response({"error": "One or more selected hours are already booked."},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -282,7 +287,16 @@ class BookingCreateView(generics.CreateAPIView):
 
         # Razorpay order creation
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-        total_amount = int(service.price_per_hour * duration_hours) * 100  # rupees → paise
+        total_amount_rupees = service.price_per_hour * duration_hours
+        payable_amount_rupees = total_amount_rupees
+
+        if is_partial_payment:
+            partial_percentage = getattr(settings, "PARTIAL_PAYMENT_PERCENTAGE", Decimal('0.25'))
+            if not isinstance(partial_percentage, Decimal):
+                partial_percentage = Decimal(str(partial_percentage))
+            payable_amount_rupees = (total_amount_rupees * partial_percentage).quantize(Decimal('0.01'))
+
+        total_amount = int(payable_amount_rupees * 100)  # rupees → paise
 
         order_data = {
             "amount": total_amount,
@@ -299,6 +313,7 @@ class BookingCreateView(generics.CreateAPIView):
             "razorpay_order_id": order.get("id"),
             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
             "amount": total_amount,
+            "is_partial_payment": is_partial_payment,
         })
         return Response(response_data, status=status.HTTP_201_CREATED)
 
@@ -361,6 +376,11 @@ class VerifyPaymentView(APIView):
         order_id = data.get("razorpay_order_id")
         payment_id = data.get("razorpay_payment_id")
         signature = data.get("razorpay_signature")
+        is_partial_payment = data.get("is_partial_payment", False)
+        if isinstance(is_partial_payment, str):
+            is_partial_payment = is_partial_payment.lower() in ("true", "1", "yes")
+        else:
+            is_partial_payment = bool(is_partial_payment)
 
         if not all([order_id, payment_id, signature]):
             return Response(
@@ -386,7 +406,7 @@ class VerifyPaymentView(APIView):
 
             booking.payment_id = payment_id
             booking.payment_signature = signature
-            booking.status = "paid"
+            booking.status = "partial" if is_partial_payment else "paid"
             booking.save()
 
             return Response({
@@ -405,6 +425,7 @@ class VerifyPaymentView(APIView):
             
 @api_view(['GET'])
 def get_services(request):
+    permission_classes = [AllowAny]
     services = Service.objects.all()
     serialized_data = ServiceSerializer(services, many=True).data
     return Response(serialized_data, status=200)

@@ -1,13 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Clock, MapPin, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useSports } from '../../hooks/useSports'; 
-import { fetchSlots, createBooking } from '../../services/api'; 
+import { useSports } from '../../hooks/UseSports';
+import { fetchSlots, createBooking, verifyPayment } from '../../services/api';
 import SportSelector from './SportSelector';
 import Calendar from './Calendar';
 import DurationSelector from './DurationSelector';
 import TurfSelector from './TurfSelector';
 import BookingSummary from './BookingSummary';
-import ActionButtons from './ActionButtons';
+// import ActionButtons from './ActionButtons';
+import { isLoggedIn } from '../../services/is_logged_in';
+import PhoneOTPComponent from "../Register";
+
+import toast from "react-hot-toast";
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve, reject) => {
+    const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existingScript) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error('Razorpay SDK failed to load.'));
+    document.body.appendChild(script);
+  });
+};
 
 export default function SportsBooking() {
   const today = new Date(2025, 10, 11);
@@ -18,9 +38,10 @@ export default function SportsBooking() {
   const [duration, setDuration] = useState(1);
   const [selectedTurf, setSelectedTurf] = useState('5-a-side-turf-a');
   const [availableSlots, setAvailableSlots] = useState([]);
-
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [overlay ,setOverlay] =useState(false);
   const { sports, loading, error } = useSports();
-
+  const [login,setLogin] = useState(isLoggedIn());
   const turfs = [
     { id: '5-a-side-turf-a', name: '5 a side Turf A' },
     { id: '5-a-side-turf-b', name: '5 a side Turf B' },
@@ -127,13 +148,16 @@ export default function SportsBooking() {
 
   const handleBooking = async (partial = false) => {
     if (!selectedSport || !selectedSlot || !selectedDate) {
-      alert("Please select sport, slot, and date before proceeding.");
+      
+      // alert("Please select sport, slot, and date before proceeding.");
+      toast.error("Please select sport, slot, and date before proceeding.");
       return;
     }
 
     const serviceObj = sports.find(s => s.name.toLowerCase() === selectedSport);
     if (!serviceObj) {
-      alert("Selected sport invalid.");
+      // alert("Selected sport invalid.");
+      toast.error("Selected Sport invalid.")
       return;
     }
 
@@ -144,16 +168,78 @@ export default function SportsBooking() {
       service: serviceObj.id,
       time_slot: selectedSlot,
       date: dateStr,
-      hours: duration,
+      duration_hours: duration,
+      is_partial_payment: partial,
     };
 
+    setIsProcessingPayment(true);
     try {
-      await createBooking(bookingData);
-      alert(partial ? "Partial payment initiated." : "Booking successful.");
-      // handle UI update or redirect
+      const bookingResponse = await createBooking(bookingData);
+      const { booking_id, razorpay_order_id, razorpay_key_id, amount } = bookingResponse.data || {};
+
+      if (!razorpay_order_id || !razorpay_key_id) {
+        throw new Error("Unable to initiate payment. Please try again.");
+      }
+
+      await loadRazorpayScript();
+      if (!window.Razorpay) {
+        throw new Error("Razorpay SDK not available.");
+      }
+
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+      const options = {
+        key: razorpay_key_id,
+        amount,
+        currency: "INR",
+        name: "Strikers Yard",
+        description: partial ? "Partial Booking Payment" : "Turf Booking Payment",
+        order_id: razorpay_order_id,
+        notes: {
+          booking_id: booking_id || '',
+          service: serviceObj.name,
+          duration_hours: duration.toString(),
+        },
+        prefill: {
+          name: storedUser?.name || "Strikers Yard Player",
+          contact: storedUser?.phone_number || "",
+        },
+        handler: async (response) => {
+          try {
+            await verifyPayment({
+              razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              is_partial_payment: partial,
+            });
+            // alert("Payment verified successfully! See you on the turf.");
+            toast.success("Payment verified successfully! See you on turf.")
+          } catch (verificationError) {
+            console.error("Payment verification failed:", verificationError);
+            // alert("Payment captured but verification failed. Please contact support.");
+            toast.error("Payment captured but verification failed. Please contact support.")
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            // alert("Payment popup closed. Booking remains pending.");
+            toast.error("Payment popup closed. Booking remains pending.")
+          },
+        },
+        theme: {
+          color: "#5B21B6",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
     } catch (error) {
       console.error("Booking failed:", error);
-      alert("Booking failed. Please try again.");
+      // alert(error.message || "Booking failed. Please try againw.");
+      toast.error(error.message || "Booking failed. Please try again.")
+      
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -195,7 +281,7 @@ export default function SportsBooking() {
           <div className="lg:flex-1 space-y-6">
             <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-3xl shadow-xl p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                <div className="w-1.5 h-8 bg-linear-to-b from-blue-500 to-purple-500 rounded-full"></div>
                 Select Slot
               </h2>
               <div className="grid grid-cols-2 gap-3 relative">
@@ -209,13 +295,12 @@ export default function SportsBooking() {
                         key={slot.id}
                         disabled={slot.is_taken}
                         onClick={() => setSelectedSlot(slot.id)}
-                        className={`relative p-4 rounded-xl transition-all duration-300 text-sm font-semibold ${
-                          selectedSlot === slot.id
-                            ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-105'
+                        className={`relative p-4 rounded-xl transition-all duration-300 text-sm font-semibold ${selectedSlot === slot.id
+                            ? 'bg-linear-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-105'
                             : slot.is_taken
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white/50 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/70 hover:scale-105 hover:shadow-md'
-                        }`}
+                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-white/50 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/70 hover:scale-105 hover:shadow-md'
+                          }`}
                       >
                         {slotText}
                         {selectedSlot === slot.id && (
@@ -232,19 +317,51 @@ export default function SportsBooking() {
             <DurationSelector duration={duration} setDuration={setDuration} />
             <TurfSelector turfs={turfs} selectedTurf={selectedTurf} setSelectedTurf={setSelectedTurf} />
             <BookingSummary selectedSportObj={sports.find(s => s.name.toLowerCase() === selectedSport)} convenienceFee={convenienceFee} total={total} selectedSlot={availableSlots.find(slot => slot.id === selectedSlot)} duration={duration} />
+
+            {login && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleBooking(false)}
+                  disabled={isProcessingPayment}
+                  className={`w-full bg-linear-to-r from-blue-600 to-purple-600 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
+                    }`}
+                >
+                  {isProcessingPayment ? 'Processing...' : 'PROCEED TO PAY'}
+                </button>
+
+                <button
+                  onClick={() => handleBooking(true)}
+                  disabled={isProcessingPayment}
+                  className={`w-full bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
+                    }`}
+                >
+                  {isProcessingPayment ? 'Processing...' : 'PAY PARTIAL'}
+                </button>
+              </div>
+            )}
             <div className="space-y-4">
-              <button
-                onClick={() => handleBooking(false)}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-lg"
+
+
+
+              { !login && <button
+                onClick={()=>{
+                  setOverlay(true);
+                  // setLogin(true);
+                }}
+                disabled={isProcessingPayment}
+                className={`w-full bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
+                  }`}
               >
-                PROCEED TO PAY
-              </button>
-              <button
-                onClick={() => handleBooking(true)}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-lg"
-              >
-                PAY PARTIAL (₹505/-)
-              </button>
+                Login to Continue
+              </button> }
+              {
+                overlay && (
+                  <PhoneOTPComponent  onSuccess={()=>{
+                    setLogin(true)
+                    setOverlay(false)
+                  }}/>
+                )
+              }
             </div>
           </div>
         </div>
