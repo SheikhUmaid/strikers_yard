@@ -14,6 +14,7 @@ export default function App() {
   const [redirectTo, setRedirectTo] = useState(null);
 
   const loggedIn = isLoggedIn();
+  // const [login,setLogin] = useState(isLoggedIn());
 
   const openLogin = (path) => {
     setRedirectTo(path);

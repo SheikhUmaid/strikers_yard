@@ -109,6 +109,14 @@ export default function SportsBooking() {
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
+  // phoneOtp componenet calls authchanged event which will be caught here to update login state
+  useEffect(() => {
+    const handler = () => setLogin(isLoggedIn());
+    window.addEventListener("authChanged", handler);
+    return () => window.removeEventListener("authChanged", handler);
+  }, []);
+
+
   useEffect(() => {
     if (!selectedSport && sports.length > 0) {
       setSelectedSport(sports[0].name.toLowerCase());
@@ -235,6 +243,8 @@ export default function SportsBooking() {
             });
             // alert("Payment verified successfully! See you on the turf.");
             toast.success("Payment verified successfully! See you on turf.")
+            window.location.href = '/My-bookings'; // redirect to bookings
+
           } catch (verificationError) {
             console.error("Payment verification failed:", verificationError);
             // alert("Payment captured but verification failed. Please contact support.");

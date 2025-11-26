@@ -57,7 +57,9 @@ export default function PhoneOTPComponent({onSuccess}) {
                 localStorage.setItem('refresh_token', response.data.refresh);
             }
             if(onSuccess){
-                onSuccess()
+                onSuccess();
+                window.dispatchEvent(new Event("authChanged"));
+
             }
             // Redirect or perform next action after successful verification
             // window.location.href = '/dashboard';
