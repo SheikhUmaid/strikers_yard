@@ -327,11 +327,7 @@ export default function SportsBooking() {
           />
 
           {/* TURF SELECTOR */}
-          <div className="
-            rounded-3xl backdrop-blur-3xl bg-gray-950/10 
-            border border-white/15 shadow-[0_24px_80px_rgba(0,0,0,0.55)]
-            p-7
-          ">
+          <div >
             <TurfSelector
               turfs={turfs}
               selectedTurf={selectedTurf}

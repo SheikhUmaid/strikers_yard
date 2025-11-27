@@ -9,7 +9,6 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Listen for auth updates (ex: new login updates profile instantly)
   useEffect(() => {
     const handler = () => {
       const updated = JSON.parse(localStorage.getItem("user") || "{}");
@@ -53,110 +52,154 @@ export default function Profile() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     window.dispatchEvent(new Event("authChanged"));
-    window.location.href = "/"; // Redirect to home
+    window.location.href = "/";
   };
 
   return (
-    <div className="max-w-xl mx-auto p-8 mt-10 bg-white/70 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/40">
+    <div className="relative min-h-screen pt-40 pb-16 px-4 sm:px-6">
 
-      <div className="flex flex-col items-center mb-6">
-        <img
-          src="/default-avatar.png"
-          className="w-28 h-28 rounded-full border-4 border-purple-500 shadow-lg"
-          alt="Profile"
-        />
 
-        <h1 className="text-3xl font-bold mt-4 text-gray-800">
-          {user?.name || "Unnamed User"}
-        </h1>
+      {/* BACKGROUND */}
+      <div
+        className="absolute inset-0 -z-20 filter blur-[2px]"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1744565473172-a3c64b1e1bbb?q=80&w=1051&auto=format&fit=crop')",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+        }}
+      />
 
-        <p className="text-gray-600 mt-1">{user?.email || "No Email Added"}</p>
-      </div>
+      {/* DIM OVERLAY */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm -z-10" />
 
-      <div className="space-y-5">
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-gray-700">
-            Name
-          </label>
-          <div className="flex items-center gap-3 px-4 py-3 border rounded-xl bg-white/50">
-            <User className="text-purple-600" />
-            <input
-              type="text"
-              className="flex-1 bg-transparent outline-none"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-            />
-          </div>
-        </div>
+      {/* MAIN CARD */}
+      <div
+        className="
+          max-w-xl mx-auto w-full p-6 sm:p-8
+          rounded-3xl backdrop-blur-3xl bg-gray-950/20
+          border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.55)]
+        "
+      >
 
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-gray-700">
-            Email
-          </label>
-          <div className="flex items-center gap-3 px-4 py-3 border rounded-xl bg-white/50">
-            <Mail className="text-purple-600" />
-            <input
-              type="email"
-              className="flex-1 bg-transparent outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-            />
-          </div>
-        </div>
+        {/* HEADER */}
+        <div className="flex flex-col items-center mb-8">
+          <img
+            src="https://i.pinimg.com/736x/3e/77/89/3e7789b164213f91358aaa4a47bd8d95.jpg"
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-emerald-400 shadow-xl object-cover"
+            alt="Profile Avatar"
+          />
 
-        {/* Phone (read-only) */}
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-gray-700">
-            Phone
-          </label>
-          <div className="flex items-center gap-3 px-4 py-3 border rounded-xl bg-gray-100">
-            <Phone className="text-gray-500" />
-            <input
-              type="text"
-              className="flex-1 bg-transparent outline-none"
-              value={user?.phone_number || ""}
-              disabled
-            />
-          </div>
-        </div>
+          <h1 className="text-2xl sm:text-3xl font-bold mt-4 text-emerald-200 drop-shadow-lg text-center">
+            {user?.name || "Unnamed User"}
+          </h1>
 
-        {/* Save Button */}
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`w-full py-4 text-white rounded-xl font-semibold shadow-md transition ${
-            isSaving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-700"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save Changes"}
-        </button>
-
-        {/* Log Out */}
-        <button
-          onClick={logout}
-          className="w-full flex justify-center items-center gap-2 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-md"
-        >
-          <LogOut size={18} /> Logout
-        </button>
-
-        {/* Message */}
-        {message && (
-          <p
-            className={`text-center mt-3 font-medium ${
-              message.includes("success")
-                ? "text-green-700"
-                : "text-red-700"
-            }`}
-          >
-            {message}
+          <p className="text-emerald-100/70 text-sm mt-1 text-center break-all">
+            {user?.email || "No Email Added"}
           </p>
-        )}
+        </div>
+
+        {/* FORM */}
+        <div className="space-y-6">
+
+          {/* NAME */}
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-emerald-200/80">
+              Name
+            </label>
+            <div className="
+              flex items-center gap-3 px-4 py-3 
+              border rounded-xl bg-white/5 border-white/10
+            ">
+              <User className="text-emerald-300 w-5 h-5" />
+              <input
+                type="text"
+                className="flex-1 bg-transparent outline-none text-emerald-100 text-sm sm:text-base"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+              />
+            </div>
+          </div>
+
+          {/* EMAIL */}
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-emerald-200/80">
+              Email
+            </label>
+            <div className="
+              flex items-center gap-3 px-4 py-3 
+              border rounded-xl bg-white/5 border-white/10
+            ">
+              <Mail className="text-emerald-300 w-5 h-5" />
+              <input
+                type="email"
+                className="flex-1 bg-transparent outline-none text-emerald-100 text-sm sm:text-base"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+              />
+            </div>
+          </div>
+
+          {/* PHONE (read-only) */}
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-emerald-200/80">
+              Phone Number
+            </label>
+            <div className="
+              flex items-center gap-3 px-4 py-3 
+              border rounded-xl bg-gray-900/30 border-white/10
+            ">
+              <Phone className="text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                className="flex-1 bg-transparent outline-none text-gray-400 text-sm sm:text-base"
+                value={user?.phone_number || ""}
+                disabled
+              />
+            </div>
+          </div>
+
+          {/* SAVE BUTTON */}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="
+              w-full py-3 sm:py-4 rounded-xl font-semibold
+              bg-gradient-to-r from-emerald-400 to-lime-300 text-emerald-900
+              shadow-xl hover:scale-[1.02] transition
+              disabled:bg-gray-500 disabled:text-gray-300 disabled:cursor-not-allowed
+            "
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+
+          {/* LOGOUT BUTTON */}
+          <button
+            onClick={logout}
+            className="
+              w-full flex justify-center items-center gap-2 py-3 mt-1
+              bg-red-500 text-white rounded-xl text-sm sm:text-base
+              hover:bg-red-600 transition shadow-lg
+            "
+          >
+            <LogOut size={18} /> Logout
+          </button>
+
+          {/* MESSAGE */}
+          {message && (
+            <p
+              className={`text-center mt-3 font-medium ${
+                message.includes("success")
+                  ? "text-emerald-300"
+                  : "text-red-400"
+              }`}
+            >
+              {message}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
