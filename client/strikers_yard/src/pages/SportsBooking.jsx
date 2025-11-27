@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, MapPin, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useSports } from '../hooks/UseSports';
 import { fetchSlots, createBooking, verifyPayment } from '../services/api';
 import SportSelector from '../components/booking/SportSelector';
@@ -7,10 +7,8 @@ import Calendar from '../components/booking/Calendar';
 import DurationSelector from '../components/booking/DurationSelector';
 import TurfSelector from '../components/booking/TurfSelector';
 import BookingSummary from '../components/booking/BookingSummary';
-// import ActionButtons from './ActionButtons';
 import { isLoggedIn } from '../services/is_logged_in';
 import PhoneOTPComponent from "../components/Register";
-
 import toast from "react-hot-toast";
 
 const loadRazorpayScript = () => {
@@ -39,9 +37,10 @@ export default function SportsBooking() {
   const [selectedTurf, setSelectedTurf] = useState();
   const [availableSlots, setAvailableSlots] = useState([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [overlay ,setOverlay] =useState(false);
+  const [overlay, setOverlay] = useState(false);
   const { sports, loading, error } = useSports();
-  const [login,setLogin] = useState(isLoggedIn());
+  const [login, setLogin] = useState(isLoggedIn());
+
   const turfs = [
     { id: '7-a-side-turf-c', name: '7 a side Turf C' },
   ];
@@ -59,12 +58,8 @@ export default function SportsBooking() {
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(new Date(year, month, i));
-    }
+    for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
     return days;
   };
 
@@ -75,27 +70,23 @@ export default function SportsBooking() {
     return dateOnly < todayOnly;
   };
 
-  const isSameDay = (date1, date2) => {
-    if (!date1 || !date2) return false;
-    return (
-      date1.getDate() === date2.getDate() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getFullYear() === date2.getFullYear()
-    );
-  };
+  const isSameDay = (a, b) =>
+    a &&
+    b &&
+    a.getDate() === b.getDate() &&
+    a.getMonth() === b.getMonth() &&
+    a.getFullYear() === b.getFullYear();
 
   const formatSelectedDate = () => {
-    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${selectedDate.getDate()} ${monthsShort[selectedDate.getMonth()]}, ${selectedDate.getFullYear()}`;
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${selectedDate.getDate()} ${m[selectedDate.getMonth()]}, ${selectedDate.getFullYear()}`;
   };
 
-  const goToPreviousMonth = () => {
+  const goToPreviousMonth = () =>
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
 
-  const goToNextMonth = () => {
+  const goToNextMonth = () =>
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
 
   const isPreviousMonthDisabled = () => {
     const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
@@ -103,19 +94,18 @@ export default function SportsBooking() {
   };
 
   const days = getDaysInMonth();
+
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const monthsLong = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
-  // phoneOtp componenet calls authchanged event which will be caught here to update login state
   useEffect(() => {
     const handler = () => setLogin(isLoggedIn());
     window.addEventListener("authChanged", handler);
     return () => window.removeEventListener("authChanged", handler);
   }, []);
-
 
   useEffect(() => {
     if (!selectedSport && sports.length > 0) {
@@ -134,27 +124,7 @@ export default function SportsBooking() {
 
     fetchSlots(dateStr, service.id)
       .then(res => {
-        //filter res.data.slots which are of today and time is already past
-        //TODO: test this 
         let slots = res.data.slots;
-
-        // If the selected date is today → remove past slots
-        const now = new Date();
-        const isToday =
-          selectedDate.getFullYear() === now.getFullYear() &&
-          selectedDate.getMonth() === now.getMonth() &&
-          selectedDate.getDate() === now.getDate();
-
-        if (isToday) {
-          const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-          slots = slots.filter(slot => {
-            const [h, m] = slot.start_time.split(":").map(Number);
-            const slotMinutes = h * 60 + m * 1;
-
-            return slotMinutes >= currentMinutes; // keep only future slots
-          });
-        }
         setAvailableSlots(slots);
         setSelectedSlot(null);
       })
@@ -166,53 +136,41 @@ export default function SportsBooking() {
   }, [selectedSport, selectedDate, sports]);
 
   const formatTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':');
-    let hourNum = parseInt(hours, 10);
+    const [h, m] = timeStr.split(':');
+    let hourNum = parseInt(h, 10);
     const ampm = hourNum >= 12 ? 'PM' : 'AM';
     hourNum = hourNum % 12 || 12;
-    return `${hourNum}:${minutes} ${ampm}`;
+    return `${hourNum}:${m} ${ampm}`;
   };
-  
-  // getMaxDuration to be used to get dynamic upper limits for booking duration based on already booked slots.
+
   const getMaxDuration = (slotId = selectedSlot) => {
-    if (!slotId) return 1; // ✔ check slotId, not selectedSlot
+    if (!slotId) return 1;
+    const index = availableSlots.findIndex(s => s.id === slotId);
+    if (index === -1) return 1;
 
-    const currentIndex = availableSlots.findIndex(s => s.id === slotId);
-    if (currentIndex === -1) return 1;
-
-    let maxHours = 1;
-
-    // Check upcoming consecutive slots
-    for (let i = currentIndex + 1; i < availableSlots.length; i++) {
+    let max = 1;
+    for (let i = index + 1; i < availableSlots.length; i++) {
       const prev = availableSlots[i - 1];
       const next = availableSlots[i];
-
       if (next.is_taken) break;
       if (prev.end_time !== next.start_time) break;
-
-      maxHours++;
+      max++;
     }
-
-    return maxHours;
+    return max;
   };
 
   const handleBooking = async (partial = false) => {
     if (!selectedSport || !selectedSlot || !selectedDate) {
-      
-      // alert("Please select sport, slot, and date before proceeding.");
       toast.error("Please select sport, slot, and date before proceeding.");
       return;
     }
 
     const serviceObj = sports.find(s => s.name.toLowerCase() === selectedSport);
-    if (!serviceObj) {
-      // alert("Selected sport invalid.");
-      toast.error("Selected Sport invalid.")
-      return;
-    }
 
-    const utcDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
-    const dateStr = utcDate.toISOString().split('T')[0];
+    const utcDate = new Date(
+      selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+    );
+    const dateStr = utcDate.toISOString().split("T")[0];
 
     const bookingData = {
       service: serviceObj.id,
@@ -223,165 +181,193 @@ export default function SportsBooking() {
     };
 
     setIsProcessingPayment(true);
+
     try {
       const bookingResponse = await createBooking(bookingData);
-      const { booking_id, razorpay_order_id, razorpay_key_id, amount } = bookingResponse.data || {};
-
-      if (!razorpay_order_id || !razorpay_key_id) {
-        throw new Error("Unable to initiate payment. Please try again.");
-      }
+      const { booking_id, razorpay_order_id, razorpay_key_id, amount } =
+        bookingResponse.data || {};
 
       await loadRazorpayScript();
-      if (!window.Razorpay) {
-        throw new Error("Razorpay SDK not available.");
-      }
 
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
       const options = {
         key: razorpay_key_id,
         amount,
         currency: "INR",
         name: "Strikers Yard",
-        description: partial ? "Partial Booking Payment" : "Turf Booking Payment",
         order_id: razorpay_order_id,
-        notes: {
-          booking_id: booking_id || '',
-          service: serviceObj.name,
-          duration_hours: duration.toString(),
-        },
         prefill: {
-          name: storedUser?.name || "Strikers Yard Player",
-          contact: storedUser?.phone_number || "",
+          name: storedUser?.name,
+          contact: storedUser?.phone_number,
         },
         handler: async (response) => {
-          try {
-            await verifyPayment({
-              razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              is_partial_payment: partial,
-            });
-            // alert("Payment verified successfully! See you on the turf.");
-            toast.success("Payment verified successfully! See you on turf.")
-            window.location.href = '/My-bookings'; // redirect to bookings
-
-          } catch (verificationError) {
-            console.error("Payment verification failed:", verificationError);
-            // alert("Payment captured but verification failed. Please contact support.");
-            toast.error("Payment captured but verification failed. Please contact support.")
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            // alert("Payment popup closed. Booking remains pending.");
-            toast.error("Payment popup closed. Booking remains pending.")
-          },
-        },
-        theme: {
-          color: "#5B21B6",
+          await verifyPayment({
+            razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            is_partial_payment: partial,
+          });
+          toast.success("Payment verified!");
+          window.location.href = "/My-bookings";
         },
       };
 
-      const razorpayInstance = new window.Razorpay(options);
-      razorpayInstance.open();
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      console.error("Booking failed:", error);
-      // alert(error.message || "Booking failed. Please try againw.");
-      toast.error(error.message || "Booking failed. Please try again.")
-      
+      toast.error(error.message);
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
-  if (loading) return <p className="p-4">Loading sports...</p>;
-  if (error) return <p className="p-4 text-red-500">{error}</p>;
-
   return (
-    <div style={{ backgroundImage: "url('/home/sheikh/Downloads/111.jpg')" }}>
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50">
-        {/* <div className="relative backdrop-blur-xl bg-white/30 border-b border-white/20 shadow-lg">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              Book Your Turf
-            </h1>
-            <p className="text-gray-600 text-lg">Select your sport, time, and start playing!</p>
-          </div>
-        </div> */}
+    <div className="relative min-h-screen w-full overflow-x-hidden font-[Montserrat] pt-32">
 
-        <div className="max-w-7xl mx-auto p-6 lg:flex lg:gap-6">
-          <div className="lg:flex-1 space-y-6 mb-6 lg:mb-0">
-            <SportSelector sports={sports} selectedSport={selectedSport} onSelectSport={setSelectedSport} />
-            <Calendar
-              currentMonth={currentMonth}
-              goToPreviousMonth={goToPreviousMonth}
-              goToNextMonth={goToNextMonth}
-              isPreviousMonthDisabled={isPreviousMonthDisabled}
-              days={days}
-              weekDays={weekDays}
-              months={monthsLong}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              isDateDisabled={isDateDisabled}
-              isSameDay={isSameDay}
-              today={today}
-              formatSelectedDate={formatSelectedDate}
+      {/* BLURRED BACKGROUND */}
+      <div
+        className="absolute inset-0 -z-20 filter blur-[2px]"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1744565473172-a3c64b1e1bbb?q=80&w=1051&auto=format&fit=crop')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top'
+        }}
+      />
+
+      {/* DIM LAYER */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm -z-10" />
+
+      <div className="max-w-7xl mx-auto p-6 lg:flex lg:gap-6">
+
+        {/* LEFT COLUMN */}
+        <div className="lg:flex-1 space-y-6">
+
+          <SportSelector
+            sports={sports}
+            selectedSport={selectedSport}
+            onSelectSport={setSelectedSport}
+          />
+
+          <Calendar
+            currentMonth={currentMonth}
+            goToPreviousMonth={goToPreviousMonth}
+            goToNextMonth={goToNextMonth}
+            isPreviousMonthDisabled={isPreviousMonthDisabled}
+            days={days}
+            weekDays={weekDays}
+            months={monthsLong}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            isDateDisabled={isDateDisabled}
+            isSameDay={isSameDay}
+            today={today}
+            formatSelectedDate={formatSelectedDate}
+          />
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="lg:flex-1 space-y-6">
+
+          {/* SLOT SELECTOR */}
+          <div className="
+            rounded-3xl backdrop-blur-3xl bg-gray-950/10 
+            border border-white/15 shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+            p-7
+          ">
+            <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-3">
+              <div className="w-1.5 h-8 bg-gradient-to-b from-emerald-300 to-lime-300 rounded-full" />
+              Select Slot
+            </h2>
+
+            <div className="grid grid-cols-2 gap-3">
+              {availableSlots.length === 0 ? (
+                <p className="text-emerald-100/70">No slots available.</p>
+              ) : (
+                availableSlots.map((slot) => {
+                  const slotText = `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`;
+                  const isSelected = selectedSlot === slot.id;
+
+                  return (
+                    <button
+                      key={slot.id}
+                      disabled={slot.is_taken}
+                      onClick={() => {
+                        const max = getMaxDuration(slot.id);
+                        setSelectedSlot(slot.id);
+                        if (duration > max) setDuration(1);
+                      }}
+                      className={`
+                        relative p-4 rounded-xl text-sm font-semibold transition-all duration-300
+                        ${
+                          slot.is_taken
+                            ? 'bg-white/5 text-emerald-200/40 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-gradient-to-br from-emerald-400 to-lime-300 text-emerald-900 shadow-lg scale-110'
+                            : 'bg-white/5 text-emerald-50 hover:bg-white/15 hover:scale-105 hover:shadow-md'
+                        }
+                      `}
+                    >
+                      {slotText}
+
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* DURATION */}
+          <DurationSelector
+            duration={duration}
+            setDuration={setDuration}
+            getMaxDuration={getMaxDuration}
+            selectedSlot={selectedSlot}
+          />
+
+          {/* TURF SELECTOR */}
+          <div className="
+            rounded-3xl backdrop-blur-3xl bg-gray-950/10 
+            border border-white/15 shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+            p-7
+          ">
+            <TurfSelector
+              turfs={turfs}
+              selectedTurf={selectedTurf}
+              setSelectedTurf={setSelectedTurf}
             />
           </div>
 
-          <div className="lg:flex-1 space-y-6">
-            <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-3xl shadow-xl p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-linear-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                Select Slot
-              </h2>
-              <div className="grid grid-cols-2 gap-3 relative">
-                {availableSlots.length === 0 ? (
-                  <p className="text-gray-500">No slots available for selected date and sport.</p>
-                ) : (
-                  availableSlots.map(slot => {
-                    const slotText = `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`;
-                    return (
-                      <button
-                        key={slot.id}
-                        disabled={slot.is_taken}
-                        onClick={() => {
-                          const max = getMaxDuration(slot.id);
-                          setSelectedSlot(slot.id)
-                          //reset to 1 hour whenever new slot is selected
-                          if(duration  > max) setDuration(1);
-                        }}
-                        className={`relative p-4 rounded-xl transition-all duration-300 text-sm font-semibold ${selectedSlot === slot.id
-                            ? 'bg-linear-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-105'
-                            : slot.is_taken
-                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              : 'bg-white/50 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/70 hover:scale-105 hover:shadow-md'
-                          }`}
-                      >
-                        {slotText}
-                        {selectedSlot === slot.id && (
-                          <div className="absolute top-2 right-2 bg-white/30 backdrop-blur-sm rounded-full p-0.5">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-            <DurationSelector duration={duration} setDuration={setDuration} getMaxDuration= {getMaxDuration} selectedSlot = {selectedSlot}/>
-            <TurfSelector turfs={turfs} selectedTurf={selectedTurf} setSelectedTurf={setSelectedTurf} />
-            <BookingSummary selectedSportObj={sports.find(s => s.name.toLowerCase() === selectedSport)} convenienceFee={convenienceFee} total={total} selectedSlot={availableSlots.find(slot => slot.id === selectedSlot)} duration={duration} />
+          {/* BOOKING SUMMARY */}
+          <div >
+            <BookingSummary
+              selectedSportObj={sports.find(s => s.name.toLowerCase() === selectedSport)}
+              convenienceFee={convenienceFee}
+              total={total}
+              selectedSlot={availableSlots.find(s => s.id === selectedSlot)}
+              duration={duration}
+            />
+          </div>
 
-            {login && (
-              <div className="space-y-4">
+          {/* ACTION BUTTONS */}
+          <div className="
+            rounded-3xl backdrop-blur-3xl bg-gray-950/10 
+            border border-white/15 shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+            p-7 space-y-4
+          ">
+            {login ? (
+              <>
                 <button
                   onClick={() => handleBooking(false)}
                   disabled={isProcessingPayment}
-                  className={`w-full bg-linear-to-r from-blue-600 to-purple-600 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
-                    }`}
+                  className="
+                    w-full bg-gradient-to-r from-emerald-400 to-lime-300
+                    text-emerald-900 font-bold py-5 rounded-2xl shadow-xl
+                    transition-all duration-300 hover:shadow-2xl hover:scale-105 
+                    active:scale-95
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  "
                 >
                   {isProcessingPayment ? 'Processing...' : 'PROCEED TO PAY'}
                 </button>
@@ -389,37 +375,40 @@ export default function SportsBooking() {
                 <button
                   onClick={() => handleBooking(true)}
                   disabled={isProcessingPayment}
-                  className={`w-full bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
-                    }`}
+                  className="
+                    w-full bg-gradient-to-r from-amber-500 to-orange-400
+                    text-white font-bold py-5 rounded-2xl shadow-xl
+                    transition-all duration-300 hover:shadow-2xl hover:scale-105 
+                    active:scale-95
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  "
                 >
                   {isProcessingPayment ? 'Processing...' : 'PAY PARTIAL'}
                 </button>
-              </div>
-            )}
-            <div className="space-y-4">
-
-
-
-              { !login && <button
-                onClick={()=>{
-                  setOverlay(true);
-                  // setLogin(true);
-                }}
+              </>
+            ) : (
+              <button
+                onClick={() => setOverlay(true)}
                 disabled={isProcessingPayment}
-                className={`w-full bg-linear-to-r from-amber-500 to-orange-500 text-white font-bold py-5 rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-lg ${isProcessingPayment ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-2xl hover:scale-105 active:scale-95'
-                  }`}
+                className="
+                  w-full bg-gradient-to-r from-emerald-400 to-lime-300
+                  text-emerald-900 font-bold py-5 rounded-2xl shadow-xl
+                  transition-all duration-300 hover:shadow-2xl hover:scale-105 
+                  active:scale-95
+                "
               >
                 Login to Continue
-              </button> }
-              {
-                overlay && (
-                  <PhoneOTPComponent  onSuccess={()=>{
-                    setLogin(true)
-                    setOverlay(false)
-                  }}/>
-                )
-              }
-            </div>
+              </button>
+            )}
+
+            {overlay && (
+              <PhoneOTPComponent
+                onSuccess={() => {
+                  setLogin(true);
+                  setOverlay(false);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

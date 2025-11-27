@@ -1,19 +1,17 @@
 import { Clock } from 'lucide-react';
 
 export default function BookingSummary({
-  selectedSportObj,    // Pass entire selected sport object from API { id, name, price_per_hour }
-  convenienceFee = 20, // Fixed fee
-  selectedSlot,        // Pass actual slot object { start_time, end_time, ... }
+  selectedSportObj,
+  convenienceFee = 20,
+  selectedSlot,
   duration = 1
 }) {
-  // Fallback value if not loaded
   const bookingFee = selectedSportObj
     ? parseInt(selectedSportObj.price_per_hour, 10) * duration
     : 0;
 
   const total = bookingFee + convenienceFee;
 
-  // Format slot time for display (if slot chosen), else show message
   const formatTime = (timeStr) => {
     if (!timeStr) return 'NA';
     const [hours, minutes] = timeStr.split(':');
@@ -24,30 +22,66 @@ export default function BookingSummary({
   };
 
   return (
-    <div className="backdrop-blur-xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 border border-white/20 rounded-3xl shadow-xl p-6">
-      <h3 className="font-bold text-xl mb-6 text-gray-800">Booking Summary</h3>
+    <div
+      className="
+        rounded-3xl 
+        backdrop-blur-3xl 
+        bg-gray-950/10 
+        border border-white/15 
+        shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+        p-7
+      "
+    >
+      <h3 className="font-semibold text-xl mb-6 text-emerald-50">
+        Booking Summary
+      </h3>
+
+      {/* Price Details */}
       <div className="space-y-4 mb-6">
         <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Booking Fee</span>
-          <span className="font-bold text-2xl text-gray-800">₹{bookingFee - 20 }</span>
+          <span className="text-emerald-100/80 font-medium">Booking Fee</span>
+          <span className="font-bold text-2xl text-emerald-50">
+            ₹{bookingFee - 20}
+          </span>
         </div>
+
         <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Convenience Fee</span>
-          <span className="font-bold text-2xl text-gray-800">₹{convenienceFee}</span>
+          <span className="text-emerald-100/80 font-medium">Convenience Fee</span>
+          <span className="font-bold text-2xl text-emerald-50">
+            ₹{convenienceFee}
+          </span>
         </div>
-        <div className="border-t border-white/30 pt-4">
+
+        <div className="border-t border-white/20 pt-4">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-lg text-gray-800">Total Amount</span>
-            <span className="font-bold text-3xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">₹{total - 20}</span>
+            <span className="font-bold text-lg text-emerald-50">
+              Total Amount
+            </span>
+            <span className="text-3xl font-bold bg-gradient-to-r from-emerald-300 to-lime-200 bg-clip-text text-transparent">
+              ₹{total - 20}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="backdrop-blur-lg bg-white/30 border border-white/30 rounded-2xl p-4 mb-6">
-        <div className="flex items-center gap-3 text-gray-700">
-          <Clock className="w-5 h-5 text-blue-600" />
+      {/* Selected Time */}
+      <div
+        className="
+          rounded-2xl 
+          border border-white/20 
+          bg-white/10 
+          backdrop-blur-xl 
+          p-4
+        "
+      >
+        <div className="flex items-center gap-3 text-emerald-50">
+          <Clock className="w-5 h-5 text-emerald-300" />
+
           <div>
-            <div className="text-xs text-gray-600 font-medium">Selected Time</div>
+            <div className="text-xs text-emerald-100/60 font-medium">
+              Selected Time
+            </div>
+
             <div className="font-bold">
               {selectedSlot
                 ? `${formatTime(selectedSlot.start_time)} - ${formatTime(selectedSlot.end_time)}`

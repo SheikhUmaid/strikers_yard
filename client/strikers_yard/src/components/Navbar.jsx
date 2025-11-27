@@ -8,11 +8,8 @@ export default function Navbar({ openLogin }) {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
   const loggedIn = isLoggedIn();
 
-  // Listen for login/logout updates
   useEffect(() => {
-    const handler = () => {
-      setUser(JSON.parse(localStorage.getItem("user") || "{}"));
-    };
+    const handler = () => setUser(JSON.parse(localStorage.getItem("user") || "{}"));
     window.addEventListener("authChanged", handler);
     return () => window.removeEventListener("authChanged", handler);
   }, []);
@@ -21,103 +18,152 @@ export default function Navbar({ openLogin }) {
     localStorage.removeItem("user");
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-
     window.dispatchEvent(new Event("authChanged"));
     window.location.href = "/";
   };
 
   return (
-    <div className="backdrop-blur-xl bg-white/30 border-b border-white/20 shadow-lg sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
+    <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[90vw] max-w-5xl z-40">
+      <nav className="
+          flex items-center justify-between px-6 py-5 
+          rounded-2xl shadow-xl backdrop-blur-xl 
+          bg-gray-950/20 border border-white/15
+          text-white
+        "
+      >
         {/* LOGO */}
         <Link
           to="/"
-          className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          className="text-3xl font-bold tracking-tight font-[Montserrat] drop-shadow"
         >
-          Book My Turf
+          Strikers Yard
         </Link>
 
-        {/* DESKTOP LINKS */}
-        <div className="hidden md:flex items-center gap-6 ml-10">
-          <Link to="/" className="font-medium text-gray-700 hover:text-blue-600">Home</Link>
-          <Link to="/booking" className="font-medium text-gray-700 hover:text-blue-600">Book Turf</Link>
-          <Link to="/my-bookings" className="font-medium text-gray-700 hover:text-blue-600">My Bookings</Link>
+        {/* DESKTOP MENU */}
+        <div className="hidden md:flex items-center gap-8">
+          <Link
+            to="/"
+            className="font-semibold px-4 py-1 rounded-xl transition hover:bg-white/10 hover:text-emerald-300"
+          >
+            Home
+          </Link>
+          <Link
+            to="/booking"
+            className="font-semibold px-4 py-1 rounded-xl transition hover:bg-white/10 hover:text-emerald-300"
+          >
+            Book Turf
+          </Link>
+          <Link
+            to="/my-bookings"
+            className="font-semibold px-4 py-1 rounded-xl transition hover:bg-white/10 hover:text-emerald-300"
+          >
+            My Bookings
+          </Link>
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="hidden md:flex items-center gap-4">
-
+        {/* DESKTOP LOGIN BUTTONS */}
+        <div className="hidden md:flex items-center gap-3">
           {!loggedIn ? (
-            // LOGIN BUTTON (desktop)
             <button
               onClick={openLogin}
-              className="font-medium text-gray-700 hover:text-blue-600"
+              className="
+                font-bold px-7 py-2 rounded-full transition 
+                border-2 border-emerald-400 
+                hover:bg-emerald-400 hover:text-black
+                hover:shadow-md
+              "
             >
               Login
             </button>
           ) : (
-            // USERNAME + LOGOUT BUTTON
-            <div className="flex items-center gap-3">
+            <>
               <Link
                 to="/profile"
-                className="font-semibold text-gray-800 hover:text-blue-600"
+                className="font-semibold px-4 py-2 rounded-full transition hover:bg-white/10 hover:text-emerald-300"
               >
                 {user?.name || "User"}
               </Link>
               <button
                 onClick={logout}
-                className="p-2 rounded-full hover:bg-red-100 text-red-600"
-                title="Logout"
+                className="p-2 rounded-full hover:bg-white/10 text-emerald-300"
               >
-                <LogOut size={20} />
+                <LogOut size={24} />
               </button>
-            </div>
+            </>
           )}
         </div>
 
         {/* MOBILE MENU BUTTON */}
-        <button className="md:hidden p-2" onClick={() => setOpen(!open)}>
-          {open ? <X size={26} /> : <Menu size={26} />}
+        <button
+          className="md:hidden text-white p-2"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={28} /> : <Menu size={28} />}
         </button>
       </nav>
 
-      {/* MOBILE DROPDOWN MENU */}
+      {/* MOBILE DROPDOWN */}
       {open && (
-        <div className="md:hidden bg-white/50 backdrop-blur-xl border-t border-white/20 py-4 px-6 space-y-4">
-
-          <Link to="/" className="block font-medium text-gray-700" onClick={() => setOpen(false)}>
+        <div
+          className="
+            md:hidden mt-3 p-6 rounded-2xl backdrop-blur-xl 
+            bg-gray-950/40 border border-white/10 shadow-xl 
+            flex flex-col gap-4 text-white
+          "
+        >
+          <Link
+            to="/"
+            onClick={() => setOpen(false)}
+            className="font-semibold py-2 rounded-xl hover:bg-white/10 hover:text-emerald-300"
+          >
             Home
           </Link>
-          <Link to="/booking" className="block font-medium text-gray-700" onClick={() => setOpen(false)}>
+          <Link
+            to="/booking"
+            onClick={() => setOpen(false)}
+            className="font-semibold py-2 rounded-xl hover:bg-white/10 hover:text-emerald-300"
+          >
             Book Turf
           </Link>
-          <Link to="/my-bookings" className="block font-medium text-gray-700" onClick={() => setOpen(false)}>
+          <Link
+            to="/my-bookings"
+            onClick={() => setOpen(false)}
+            className="font-semibold py-2 rounded-xl hover:bg-white/10 hover:text-emerald-300"
+          >
             My Bookings
           </Link>
 
+          {/* LOGIN / LOGOUT MOBILE */}
           {!loggedIn ? (
             <button
-              onClick={() => { setOpen(false); openLogin(); }}
-              className="block font-medium text-gray-700"
+              onClick={() => {
+                setOpen(false);
+                openLogin();
+              }}
+              className="
+                w-full font-bold py-3 rounded-xl border-2 
+                border-emerald-400 hover:bg-emerald-400 
+                hover:text-black transition
+              "
             >
               Login
             </button>
           ) : (
-            <div className="flex items-center justify-between">
-            <Link
-              to="/profile"
-              className="font-semibold text-gray-800 hover:text-blue-600"
-            >
-              {user?.name || "User"}
-            </Link>
+            <>
+              <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="font-semibold py-2 rounded-xl hover:bg-white/10 hover:text-emerald-300"
+              >
+                {user?.name || "User"}
+              </Link>
               <button
                 onClick={logout}
-                className="text-red-600 font-medium"
+                className="w-full font-semibold py-3 rounded-xl hover:bg-white/10 text-emerald-300"
               >
                 Logout
               </button>
-            </div>
+            </>
           )}
         </div>
       )}
