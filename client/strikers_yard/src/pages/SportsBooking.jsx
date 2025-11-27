@@ -221,6 +221,26 @@ export default function SportsBooking() {
       setIsProcessingPayment(false);
     }
   };
+  const isPastSlot = (slot) => {
+    const now = new Date();
+    const slotDate = new Date(selectedDate);
+
+    // If slot is NOT today → never past
+    if (
+      slotDate.getDate() !== now.getDate() ||
+      slotDate.getMonth() !== now.getMonth() ||
+      slotDate.getFullYear() !== now.getFullYear()
+    ) {
+      return false;
+    }
+
+    // Build slot start time as a Date object
+    const [h, m] = slot.start_time.split(":").map(Number);
+    const slotStart = new Date();
+    slotStart.setHours(h, m, 0, 0);
+
+    return slotStart < now; // true if slot already passed
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden font-[Montserrat] pt-32">
@@ -285,7 +305,7 @@ export default function SportsBooking() {
               {availableSlots.length === 0 ? (
                 <p className="text-emerald-100/70">No slots available.</p>
               ) : (
-                availableSlots.map((slot) => {
+                availableSlots.filter(slot => !isPastSlot(slot)) .map((slot) => {
                   const slotText = `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`;
                   const isSelected = selectedSlot === slot.id;
 
