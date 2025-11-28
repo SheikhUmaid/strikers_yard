@@ -135,42 +135,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 #     }
 # }
 
-import dj_database_url
-
-# DATABASE_URL = "postgresql://postgres:...@postgres.railway.internal:5432/railway"
-
-# DATABASES = {
-#     "default": dj_database_url.config(conn_max_age=300)
-# }
-
-DATABASES = {
-    "default": dj_database_url.parse(
-        "postgresql://postgres:sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe@hopper.proxy.rlwy.net:37469/railway",
-        conn_max_age=0,  # local dev
-    )
-}
-
-
-# DATABASES = {
-#     "default": dj_database_url.parse(
-#         "postgresql://postgres:sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe@postgres.railway.internal:5432/railway",
-#         conn_max_age=300,
-#     )
-# }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "railway",
-#         "USER": "postgres",
-#         "PASSWORD": "sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe",
-#         "HOST": "postgres.railway.internal",
-#         "PORT": "5432",
-
-#         # Always-on DB → persistent connections are GOOD
-#         "CONN_MAX_AGE": 300,
-#     }
-# }
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
