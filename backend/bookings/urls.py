@@ -9,6 +9,7 @@ from .views import (request_otp,
                     SetNameAndEmailView,
                     BookingDetailView,
                     MyBookingsView,
+                    health_check,
                     )
 
 urlpatterns = [
@@ -22,5 +23,6 @@ urlpatterns = [
     path('set-name-email/', SetNameAndEmailView.as_view(), name='set_name_email'),
     path('my-bookings/', MyBookingsView.as_view() ),
     path('bookings/<uuid:booking_id>/', BookingDetailView.as_view(), name='booking-detail'),
+    path('health-check/', health_check, name='health_check'),
 
 ]

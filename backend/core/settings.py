@@ -103,12 +103,83 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "neondb",
+#         "USER": "neondb_owner",
+#         "PASSWORD": "npg_1f9MHNTIoXOa",
+#         "HOST": "pgnode503-mum-1.database.excloud.co.in",
+#         "PORT": "5432",
+#          'CONN_MAX_AGE': 0,   # CRITICAL for Lambda
+       
+#     }
+# }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "strikersdb",
+#         "USER": "sheikhumaid@pm.me",
+#         "PASSWORD": "vPDBwMDKO68z1I7A",
+#         "HOST": "pg432-mum-1.database.excloud.co.in",
+#         "PORT": "5432",
+
+#         # Since this DB is ALWAYS ON, persistent connections are GOOD
+#         "CONN_MAX_AGE": 300,  # 5 minutes
+
+#         # SSL – depends on provider policy (see note below)
+#         # "OPTIONS": {
+#         #     "sslmode": "require",
+#         # },
+#     }
+# }
+
+import dj_database_url
+
+# DATABASE_URL = "postgresql://postgres:...@postgres.railway.internal:5432/railway"
+
+# DATABASES = {
+#     "default": dj_database_url.config(conn_max_age=300)
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.parse(
+        "postgresql://postgres:sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe@hopper.proxy.rlwy.net:37469/railway",
+        conn_max_age=0,  # local dev
+    )
 }
+
+
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         "postgresql://postgres:sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe@postgres.railway.internal:5432/railway",
+#         conn_max_age=300,
+#     )
+# }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "railway",
+#         "USER": "postgres",
+#         "PASSWORD": "sfkShhFXgQClaMlgbSKtnKUIMuYgzxhe",
+#         "HOST": "postgres.railway.internal",
+#         "PORT": "5432",
+
+#         # Always-on DB → persistent connections are GOOD
+#         "CONN_MAX_AGE": 300,
+#     }
+# }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'OPTIONS': {
+#             'timeout': 20,
+#         },
+        
+#     }}
 
 REST_FRAMEWORK = {
     

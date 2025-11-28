@@ -117,6 +117,7 @@ class Booking(models.Model):
 
     class Meta:
         unique_together = ('date', 'time_slot',)
+      
         ordering = ['-created_at']
 
     def __str__(self):

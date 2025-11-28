@@ -130,21 +130,18 @@ class SetNameAndEmailView(APIView):
             "email": user.email,
         }}, status=200)
 
-
 class TimeSlotListView(APIView):
     """
-    GET /api/slots/?date=YYYY-MM-DD&service_id=<id>
-    Returns all slots for the day, marking which are already taken.
+    GET /api/slots/?date=YYYY-MM-DD
+    Global availability for the single ground.
     """
 
     def get(self, request, *args, **kwargs):
         date_str = request.query_params.get('date')
-        service_id = request.query_params.get('service_id')
 
-        # Validate input
-        if not date_str or not service_id:
+        if not date_str:
             return Response(
-                {"error": "Both 'date' and 'service_id' are required."},
+                {"error": "'date' is required."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -156,92 +153,90 @@ class TimeSlotListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check service exists
-        try:
-            service = Service.objects.get(id=service_id)
-        except Service.DoesNotExist:
-            return Response(
-                {"error": "Service not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        slots = list(TimeSlot.objects.all().order_by('start_time'))
 
-        # Get all slots
-        slots = TimeSlot.objects.all()
-        serializer = TimeSlotSerializer(slots, many=True, context={'request': request})
+        # Map slot_id → index for easy range blocking
+        slot_index = {slot.id: i for i, slot in enumerate(slots)}
+
+        booked_indices = set()
+
+        bookings = Booking.objects.filter(
+            date=date,
+            status__in=['pending', 'partial', 'paid']
+        ).select_related('time_slot')
+
+        for booking in bookings:
+            start_idx = slot_index.get(booking.time_slot_id)
+
+            if start_idx is None:
+                continue
+
+            for i in range(start_idx,
+                        min(start_idx + booking.duration_hours, len(slots))):
+                booked_indices.add(i)
+
+        response_slots = []
+        for i, slot in enumerate(slots):
+            response_slots.append({
+                "id": slot.id,
+                "start_time": slot.start_time,
+                "end_time": slot.end_time,
+                "is_taken": i in booked_indices
+            })
 
         return Response({
             "date": str(date),
-            "service": service.name,
-            "slots": serializer.data
+            "slots": response_slots
         }, status=status.HTTP_200_OK)
-        
-        
-        
 
+# 1
+# class TimeSlotListView(APIView):
+#     """
+#     GET /api/slots/?date=YYYY-MM-DD&service_id=<id>
+#     Returns all slots for the day, marking which are already taken.
+#     """
 
+#     def get(self, request, *args, **kwargs):
+#         date_str = request.query_params.get('date')
+#         service_id = request.query_params.get('service_id')
 
-
-
-
-# class BookingCreateView(generics.CreateAPIView):
-#     serializer_class = BookingSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def create(self, request, *args, **kwargs):
-#         user = request.user
-#         service_id = request.data.get("service")
-#         time_slot_id = request.data.get("time_slot")
-#         date = request.data.get("date")
-
-#         # Validation
-#         if not all([service_id, time_slot_id, date]):
+#         # Validate input
+#         if not date_str or not service_id:
 #             return Response(
-#                 {"error": "Missing required fields (service, time_slot, date)."},
+#                 {"error": "Both 'date' and 'service_id' are required."},
 #                 status=status.HTTP_400_BAD_REQUEST
 #             )
 
 #         try:
-#             service = Service.objects.get(id=service_id)
-#             time_slot = TimeSlot.objects.get(id=time_slot_id)
-#         except (Service.DoesNotExist, TimeSlot.DoesNotExist):
-#             return Response({"error": "Invalid service or time slot."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Check if already booked
-#         if Booking.objects.filter(time_slot=time_slot, date=date, service=service).exists():
+#             date = datetime.strptime(date_str, '%Y-%m-%d').date()
+#         except ValueError:
 #             return Response(
-#                 {"error": "This time slot is already booked for this service."},
+#                 {"error": "Invalid date format. Use YYYY-MM-DD."},
 #                 status=status.HTTP_400_BAD_REQUEST
 #             )
 
-#         # Create booking (pending payment)
-#         booking = Booking.objects.create(
-#             user=user,
-#             service=service,
-#             time_slot=time_slot,
-#             date=date,
-#             status="pending"
-#         )
+#         # Check service exists
+#         try:
+#             service = Service.objects.get(id=service_id)
+#         except Service.DoesNotExist:
+#             return Response(
+#                 {"error": "Service not found."},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
 
-#         # Create Razorpay Order
-#         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+#         # Get all slots
+#         slots = TimeSlot.objects.all()
+#         serializer = TimeSlotSerializer(slots, many=True, context={'request': request})
 
-#         order_data = {
-#             "amount": int(service.price_per_hour),  # Razorpay uses paise
-#             "currency": "INR",
-#             "receipt": str(booking.booking_id),
-#             "payment_capture": 1
-#         }
+#         return Response({
+#             "date": str(date),
+#             "service": service.name,
+#             "slots": serializer.data
+#         }, status=status.HTTP_200_OK)
+        
+        
+        
 
-#         order = client.order.create(order_data)
-#         booking.payment_order_id = order.get("id")
-#         booking.save()
-
-#         response_data = self.get_serializer(booking).data
-#         response_data["razorpay_order_id"] = order.get("id")
-#         response_data["razorpay_key_id"] = settings.RAZORPAY_KEY_ID
-#         response_data["amount"] = order_data["amount"]
-
-#         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 
@@ -474,3 +469,8 @@ class BookingDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Booking.objects.filter(user=self.request.user)
+    
+    
+@api_view(['GET'])
+def health_check(request):
+    return Response({"status": "ok"}, status=200)
