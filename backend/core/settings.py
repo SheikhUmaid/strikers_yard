@@ -46,7 +46,7 @@ CORS_ALLOW_CREDENTIALS = True
 # rzp_test_RdfrUJ69Of4i9F ---------- id
 # BJ1NCxwSdYJl5gB252DSMyym ------- key
 
-8
+
 # Razorpay credentials
 RAZORPAY_KEY_ID = "rzp_test_RdfrUJ69Of4i9F"
 RAZORPAY_KEY_SECRET = "BJ1NCxwSdYJl5gB252DSMyym"
@@ -122,9 +122,54 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
-    
-    
-    
+}
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        "dev": {
+            "format": "[{asctime}] {levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "dev",
+        },
+    },
+
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+
+    "loggers": {
+        # Requests like runserver
+        "django.server": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        # 404 / 500 logs
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        # Your app logs
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
 }
 
 
