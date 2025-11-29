@@ -31,7 +31,10 @@ DEBUG = True
 ALLOWED_HOSTS = [ "http://127.0.0.1:5173",
     "http://localhost:5173",
     "https://strikersyard.com",
-    "http://210.79.128.140"]
+    "http://210.79.128.140",
+    "210.79.128.140"
+]
+
 AUTH_USER_MODEL = 'bookings.User'
 
 # CORS settings
