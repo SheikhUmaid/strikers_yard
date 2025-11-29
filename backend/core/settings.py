@@ -13,29 +13,34 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 from decimal import Decimal
+import os
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ofk9^t-i^ik3jrzfia1zsnw%7frnak-0p*5@(#s2&qv6pfd#k8'
+SECRET_KEY = os.getenv('DJANGO_SECRET', 'django-insecure-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [ "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "https://strikersyard.com",
+    "http://210.79.128.140"]
 AUTH_USER_MODEL = 'bookings.User'
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "https://5p4tjvmc-5173.inc1.devtunnels.ms",
+    "https://strikersyard.com"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -48,11 +53,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 # Razorpay credentials
-RAZORPAY_KEY_ID = "rzp_test_RdfrUJ69Of4i9F"
-RAZORPAY_KEY_SECRET = "BJ1NCxwSdYJl5gB252DSMyym"
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_RdfrUJ69Of4i9F')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'BJ1NCxwSdYJl5gB252DSMyym')
 
-PARTIAL_PAYMENT_PERCENTAGE = Decimal('0.25')
-
+PARTIAL_PAYMENT_PERCENTAGE = Decimal('50')
 
 # Application definition
 
@@ -213,3 +217,50 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'your_email@example.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'your_email_password')
+print(EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_SUBJECT_PREFIX = '[Strikers Yard]'
+
+
+
+
+# from datetime import time
+# from core.models import TimeSlot   # adjust app name if different
+
+# slots = [
+#     (6, 7),
+#     (7, 8),
+#     (8, 9),
+#     (9, 10),
+#     (10, 11),
+#     (11, 12),
+#     (12, 13),
+#     (13, 14),
+#     (14, 15),
+#     (15, 16),
+#     (16, 17),
+#     (17, 18),
+#     (18, 19),
+#     (19, 20),
+#     (20, 21),
+#     (21, 22),
+# ]
+
+# for start, end in slots:
+#     TimeSlot.objects.get_or_create(
+#         start_time=time(hour=start),
+#         end_time=time(hour=end),
+#     )
+
+# print("Time slots created ✅")

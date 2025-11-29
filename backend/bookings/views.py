@@ -28,6 +28,7 @@ from decimal import Decimal
 
 import razorpay
 from rest_framework.permissions import AllowAny
+from django.core.mail import send_mail
 
 # razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -46,6 +47,15 @@ def request_otp(request):
     OTP.objects.create(phone_number=phone, code=otp_code)
 
     # TODO: integrate SMS API (Twilio, MSG91, etc.)
+    
+    # Send email with OTP
+    send_mail(
+        subject="Your OTP Code",
+        message=f"Your OTP code is {otp_code}",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[phone],  # Replace with actual SMS gateway email
+        fail_silently=False,
+    )
     print(f"🔐 OTP for {phone} is {otp_code}")  # For now: print in console
 
     return Response({"message": "OTP sent successfully"}, status=200)
