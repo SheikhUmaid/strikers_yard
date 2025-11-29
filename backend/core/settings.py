@@ -60,11 +60,12 @@ CORS_ALLOW_CREDENTIALS = True
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_RdfrUJ69Of4i9F")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "BJ1NCxwSdYJl5gB252DSMyym")
 
-PARTIAL_PAYMENT_PERCENTAGE = Decimal("50")
+PARTIAL_PAYMENT_PERCENTAGE = Decimal(".50")
 
 # Application definition
 
 INSTALLED_APPS = [
+    "jazzmin",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -132,7 +133,11 @@ REST_FRAMEWORK = {
     ),
 }
 
-
+JAZZMIN_SETTINGS = {
+    "site_title": "My Admin",
+    "site_header": "My Admin Panel",
+    "theme": "darkly",
+}
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
