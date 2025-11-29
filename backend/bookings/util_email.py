@@ -1,0 +1,52 @@
+from django.core.mail import send_mail
+from django.conf import settings
+from bookings.models import TimeSlot
+
+
+def send_booking_emails(booking):
+    user = booking.user
+    service = booking.service
+
+    start_slot = booking.time_slot
+    all_slots = list(
+        TimeSlot.objects.order_by("start_time")
+    )
+    start_index = all_slots.index(start_slot)
+    end_slot = all_slots[start_index + booking.duration_hours - 1]
+
+    amount_paid = booking.amount_paid  # store this in model ideally
+
+    # ✅ User email
+    send_mail(
+        subject="Booking Confirmed ✅",
+        message=(
+            f"Your booking is confirmed.\n\n"
+            f"Service: {service.name}\n"
+            f"Date: {booking.date}\n"
+            f"Time: {start_slot.start_time} - {end_slot.end_time}\n"
+            f"Duration: {booking.duration_hours} hour(s)\n"
+            f"Amount Paid: ₹{amount_paid}\n"
+            f"Booking ID: {booking.booking_id}\n"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+    # ✅ Owner email
+    send_mail(
+        subject="New Turf Booking ⚽",
+        message=(
+            f"A new booking has been confirmed.\n\n"
+            f"Customer: {user.name}\n"
+            f"Service: {service.name}\n"
+            f"Date: {booking.date}\n"
+            f"Time: {start_slot.start_time} - {end_slot.end_time}\n"
+            f"Duration: {booking.duration_hours} hour(s)\n"
+            f"Status: {booking.status}\n"
+            f"Booking ID: {booking.booking_id}\n"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[settings.OWNER_EMAIL],
+        fail_silently=False,
+    )

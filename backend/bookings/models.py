@@ -111,13 +111,19 @@ class Booking(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    
+    total_payable = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_type = models.CharField(max_length=20, choices=STATUS_CHOICES, default='full')
+    
+    
     payment_order_id = models.CharField(max_length=100, blank=True, null=True)
     payment_id = models.CharField(max_length=100, blank=True, null=True)
     payment_signature = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         unique_together = ('date', 'time_slot',)
-      
         ordering = ['-created_at']
 
     def __str__(self):

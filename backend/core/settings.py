@@ -15,6 +15,7 @@ from datetime import timedelta
 from decimal import Decimal
 import os
 from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / "env")
@@ -23,19 +24,20 @@ load_dotenv(BASE_DIR / "env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET', 'django-insecure-secret-key')
+SECRET_KEY = os.getenv("DJANGO_SECRET", "django-insecure-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ "http://127.0.0.1:5173",
-    "http://localhost:5173",
-    "https://strikersyard.com",
-    "http://210.79.128.140",
-    "210.79.128.140"
+ALLOWED_HOSTS = [
+    "127.0.0.1:5173",
+    "localhost:5173",
+    "strikersyard.com",
+    "210.79.128.140",
+    "127.0.0.1"
 ]
 
-AUTH_USER_MODEL = 'bookings.User'
+AUTH_USER_MODEL = "bookings.User"
 
 # CORS settings
 # CORS_ALLOW_ALL_ORIGINS = True
@@ -43,12 +45,11 @@ AUTH_USER_MODEL = 'bookings.User'
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "https://strikersyard.com"
+    "https://strikersyard.com",
+    "https://www.strikersyard.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-
-
 
 
 # rzp_test_RdfrUJ69Of4i9F ---------- id
@@ -56,55 +57,57 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 # Razorpay credentials
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_RdfrUJ69Of4i9F')
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'BJ1NCxwSdYJl5gB252DSMyym')
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_RdfrUJ69Of4i9F")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "BJ1NCxwSdYJl5gB252DSMyym")
 
-PARTIAL_PAYMENT_PERCENTAGE = Decimal('50')
+PARTIAL_PAYMENT_PERCENTAGE = Decimal("50")
 
 # Application definition
 
 INSTALLED_APPS = [
-     'corsheaders',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'bookings',
-    'rest_framework',
+    "corsheaders",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "bookings",
+    "rest_framework",
+    "background_task",
 ]
 
 MIDDLEWARE = [
     
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+WSGI_APPLICATION = "core.wsgi.application"
 
 
 # Database
@@ -112,49 +115,43 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 20,
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 20,
         },
-        
-    }}
+    }
+}
 
 REST_FRAMEWORK = {
-    
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "formatters": {
         "dev": {
             "format": "[{asctime}] {levelname} {name}: {message}",
             "style": "{",
         },
     },
-
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "dev",
         },
     },
-
     "root": {
         "handlers": ["console"],
         "level": "INFO",
     },
-
     "loggers": {
         # Requests like runserver
         "django.server": {
@@ -162,14 +159,12 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-
         # 404 / 500 logs
         "django.request": {
             "handlers": ["console"],
             "level": "WARNING",
             "propagate": False,
         },
-
         # Your app logs
         "django": {
             "handlers": ["console"],
@@ -185,16 +180,16 @@ LOGGING = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -202,9 +197,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -214,33 +209,31 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'your_email@example.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'your_email_password')
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "your_email@example.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "your_email_password")
 print(EMAIL_HOST_USER)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
-EMAIL_SUBJECT_PREFIX = '[Strikers Yard]'
-
-
+EMAIL_SUBJECT_PREFIX = "[Strikers Yard]"
+OWNER_EMAIL = os.getenv("OWNER_EMAIL", "taryqu1234@gmail.com")
 
 
 # from datetime import time
 # from core.models import TimeSlot   # adjust app name if different
-
 # slots = [
 #     (6, 7),
 #     (7, 8),
@@ -259,11 +252,9 @@ EMAIL_SUBJECT_PREFIX = '[Strikers Yard]'
 #     (20, 21),
 #     (21, 22),
 # ]
-
 # for start, end in slots:
 #     TimeSlot.objects.get_or_create(
 #         start_time=time(hour=start),
 #         end_time=time(hour=end),
 #     )
-
 # print("Time slots created ✅")

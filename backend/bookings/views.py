@@ -13,14 +13,17 @@ from bookings.models import Service, TimeSlot, Booking
 from bookings.serializers import TimeSlotSerializer, BookingSerializer
 from bookings.models import Booking, TimeSlot, Service
 from bookings.serializers import BookingSerializer, ServiceSerializer
-
+from bookings.util_email import send_booking_emails
+from bookings.tasks import send_booking_emails_task
 
 
 
 
 from django.conf import settings
+from django.core.mail import send_mail
 from datetime import datetime
 from decimal import Decimal
+import os
 
 
 
@@ -28,7 +31,6 @@ from decimal import Decimal
 
 import razorpay
 from rest_framework.permissions import AllowAny
-from django.core.mail import send_mail
 
 # razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -108,15 +110,6 @@ def verify_otp(request):
 
     return response
     
-
-    # return Response({
-    #     "refresh": str(refresh),
-    #     "access": str(refresh.access_token),
-    #     "user": {
-    #         "id": user.id,
-    #         "phone_number": user.phone_number,
-    #     }
-    # }, status=200)
 
 
 class SetNameAndEmailView(APIView):
@@ -199,52 +192,6 @@ class TimeSlotListView(APIView):
             "slots": response_slots
         }, status=status.HTTP_200_OK)
 
-# 1
-# class TimeSlotListView(APIView):
-#     """
-#     GET /api/slots/?date=YYYY-MM-DD&service_id=<id>
-#     Returns all slots for the day, marking which are already taken.
-#     """
-
-#     def get(self, request, *args, **kwargs):
-#         date_str = request.query_params.get('date')
-#         service_id = request.query_params.get('service_id')
-
-#         # Validate input
-#         if not date_str or not service_id:
-#             return Response(
-#                 {"error": "Both 'date' and 'service_id' are required."},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-
-#         try:
-#             date = datetime.strptime(date_str, '%Y-%m-%d').date()
-#         except ValueError:
-#             return Response(
-#                 {"error": "Invalid date format. Use YYYY-MM-DD."},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-
-#         # Check service exists
-#         try:
-#             service = Service.objects.get(id=service_id)
-#         except Service.DoesNotExist:
-#             return Response(
-#                 {"error": "Service not found."},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         # Get all slots
-#         slots = TimeSlot.objects.all()
-#         serializer = TimeSlotSerializer(slots, many=True, context={'request': request})
-
-#         return Response({
-#             "date": str(date),
-#             "service": service.name,
-#             "slots": serializer.data
-#         }, status=status.HTTP_200_OK)
-        
-        
         
 
 
@@ -308,7 +255,8 @@ class BookingCreateView(generics.CreateAPIView):
             time_slot=start_slot,
             date=date,
             duration_hours=duration_hours,
-            status="pending"
+            status="pending",
+            total_payable=service.price_per_hour * duration_hours
         )
 
         # Razorpay order creation
@@ -333,6 +281,8 @@ class BookingCreateView(generics.CreateAPIView):
         order = client.order.create(order_data)
         booking.payment_order_id = order.get("id")
         booking.save()
+        
+        
 
         response_data = self.get_serializer(booking).data
         response_data.update({
@@ -341,15 +291,8 @@ class BookingCreateView(generics.CreateAPIView):
             "amount": total_amount,
             "is_partial_payment": is_partial_payment,
         })
+
         return Response(response_data, status=status.HTTP_201_CREATED)
-
-
-
-
-
-
-
-
 
 
 
@@ -386,10 +329,6 @@ class CreateRazorpayOrderView(APIView):
             "currency": "INR",
             "key": settings.RAZORPAY_KEY_ID
         }, status=status.HTTP_201_CREATED)
-        
-        
-        
-        
         
         
         
@@ -432,9 +371,13 @@ class VerifyPaymentView(APIView):
 
             booking.payment_id = payment_id
             booking.payment_signature = signature
+            booking.amount_paid = booking.total_payable
             booking.status = "partial" if is_partial_payment else "paid"
             booking.save()
-
+            
+            # Send booking confirmation emails
+            # send_booking_emails(booking)
+            send_booking_emails_task(booking.id)
             return Response({
                 "success": True,
                 "message": "Payment verified successfully",
