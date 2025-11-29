@@ -34,7 +34,8 @@ ALLOWED_HOSTS = [
     "localhost:5173",
     "strikersyard.com",
     "210.79.128.140",
-    "127.0.0.1"
+    "127.0.0.1",
+    "api.strikersyard.com",
 ]
 
 AUTH_USER_MODEL = "bookings.User"
