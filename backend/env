@@ -3,8 +3,8 @@ EMAIL_HOST_USER=strikersyard0@gmail.com
 EMAIL_HOST_PASSWORD=vavkznxtxqtaqirx
 
 
-RAZORPAY_KEY_ID = rzp_test_RdfrUJ69Of4i9F
-RAZORPAY_KEY_SECRET = BJ1NCxwSdYJl5gB252DSMyym
+RAZORPAY_KEY_ID = rzp_test_RlwnIYWOBFvCqj
+RAZORPAY_KEY_SECRET = mx0846q0l7vFI47eH4ylRWxW
 
 
 
