@@ -5,7 +5,7 @@ from .models import Service, TimeSlot, Booking
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ['id', 'name', 'description', 'price_per_hour']
+        fields = ['id', 'name', 'description', 'price_per_hour', 'evening_pricing']
 
 
 class TimeSlotSerializer(serializers.ModelSerializer):

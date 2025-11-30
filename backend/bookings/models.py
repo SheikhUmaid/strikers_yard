@@ -65,25 +65,14 @@ class OTP(models.Model):
     def __str__(self):
         return f"{self.phone_number} - {self.code}"
 
-
-
-
-
-
-
-
-
-
-
-
 class Service(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True, null=True)
     price_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
+    evening_pricing = models.DecimalField(max_digits=8, decimal_places=2, default=0)
 
     def __str__(self):
         return self.name
-
 
 # Fixed slot structure (used across all days)
 class TimeSlot(models.Model):

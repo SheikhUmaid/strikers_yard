@@ -21,7 +21,7 @@ from bookings.tasks import send_booking_emails_task
 
 from django.conf import settings
 from django.core.mail import send_mail
-from datetime import datetime
+from datetime import datetime, time
 from decimal import Decimal
 import os
 
@@ -31,6 +31,8 @@ import os
 
 import razorpay
 from rest_framework.permissions import AllowAny
+
+EVENING_START = time(17, 0)
 
 # razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -51,13 +53,13 @@ def request_otp(request):
     # TODO: integrate SMS API (Twilio, MSG91, etc.)
     
     # Send email with OTP
-    send_mail(
-        subject="Your OTP Code",
-        message=f"Your OTP code is {otp_code}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[phone],  # Replace with actual SMS gateway email
-        fail_silently=False,
-    )
+    # send_mail(
+    #     subject="Your OTP Code",
+    #     message=f"Your OTP code is {otp_code}",
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[phone],  # Replace with actual SMS gateway email
+    #     fail_silently=False,
+    # )
     print(f"🔐 OTP for {phone} is {otp_code}")  # For now: print in console
 
     return Response({"message": "OTP sent successfully"}, status=200)
@@ -248,6 +250,29 @@ class BookingCreateView(generics.CreateAPIView):
             return Response({"error": "One or more selected hours are already booked."},
                             status=status.HTTP_400_BAD_REQUEST)
 
+        total_payablee = Decimal("0.00")
+        evening_duration = 0
+        normal_duration = 0
+        print(required_slots)
+
+        for slot in required_slots:
+            print(f"Evaluating slot: {slot.start_time} - {slot.end_time}")
+            if slot.start_time >= EVENING_START:
+                print("Evening slot pricing applied.")
+                print(f" Service evening price: {service.evening_pricing}, Duration hours: {duration_hours}")
+                evening_duration += 1
+                # price = service.evening_pricing * duration_hours
+            else:
+                print("Evening slot pricing NOT applied.")
+                print(f" Service normal price: {service.price_per_hour}, Duration hours: {duration_hours}")
+                normal_duration += 1
+                # price = service.price_per_hour * duration_hours
+
+            total_payablee = total_payablee + (service.evening_pricing if slot.start_time >= EVENING_START else service.price_per_hour) 
+            # print(f" Slot price: {price}, Cumulative total: {total_payablee}")
+
+        print(f" ******************** Total payable for booking: {total_payablee}  *******************")
+
         # Create booking
         booking = Booking.objects.create(
             user=user,
@@ -256,13 +281,12 @@ class BookingCreateView(generics.CreateAPIView):
             date=date,
             duration_hours=duration_hours,
             status="pending",
-            total_payable=service.price_per_hour * duration_hours
-        )
+            total_payable=total_payablee)
 
         # Razorpay order creation
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-        total_amount_rupees = service.price_per_hour * duration_hours
-        payable_amount_rupees = total_amount_rupees
+        total_amount_rupees = total_payablee
+        payable_amount_rupees = total_payablee
 
         if is_partial_payment:
             partial_percentage = getattr(settings, "PARTIAL_PAYMENT_PERCENTAGE", Decimal('0.25'))
@@ -294,6 +318,141 @@ class BookingCreateView(generics.CreateAPIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
+
+
+
+# class BookingCreateView(generics.CreateAPIView):
+#     serializer_class = BookingSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def create(self, request, *args, **kwargs):
+#         user = request.user
+#         if not user or not user.is_authenticated:
+#             return Response(
+#                 {"error": "Authentication credentials were not provided."},
+#                 status=status.HTTP_401_UNAUTHORIZED
+#             )
+
+#         service_id = request.data.get("service")
+#         time_slot_id = request.data.get("time_slot")
+#         date = request.data.get("date")
+#         duration_hours = int(request.data.get("duration_hours", 1))
+#         is_partial_payment = request.data.get("is_partial_payment", False)
+
+#         if isinstance(is_partial_payment, str):
+#             is_partial_payment = is_partial_payment.lower() in ("true", "1", "yes")
+#         else:
+#             is_partial_payment = bool(is_partial_payment)
+
+#         if not all([service_id, time_slot_id, date]):
+#             return Response(
+#                 {"error": "Missing required fields (service, time_slot, date)."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         try:
+#             service = Service.objects.get(id=service_id)
+#             start_slot = TimeSlot.objects.get(id=time_slot_id)
+#         except (Service.DoesNotExist, TimeSlot.DoesNotExist):
+#             return Response(
+#                 {"error": "Invalid service or time slot."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         # -------- SLOT RESOLUTION --------
+#         all_slots = list(TimeSlot.objects.all().order_by("start_time"))
+
+#         if start_slot not in all_slots:
+#             return Response(
+#                 {"error": "Invalid start slot selection."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         start_index = all_slots.index(start_slot)
+#         required_slots = all_slots[start_index:start_index + duration_hours]
+
+#         if len(required_slots) < duration_hours:
+#             return Response(
+#                 {"error": "Not enough consecutive slots available."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         # -------- GLOBAL SLOT BLOCKING --------
+#         if Booking.objects.filter(
+#             time_slot__in=required_slots,
+#             date=date
+#         ).exists():
+#             return Response(
+#                 {"error": "One or more selected hours are already booked."},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         # -------- PRICING LOGIC --------
+#         total_payable = Decimal("0.00")
+
+#         for slot in required_slots:
+#             if slot.start_time >= EVENING_START:
+#                 price = service.evening_pricing
+#             else:
+#                 price = service.price_per_hour
+
+#             total_payable += price
+
+
+#         print(f"Total payable for booking: {total_payable}")
+#         # -------- CREATE BOOKING --------
+#         booking = Booking.objects.create(
+#             user=user,
+#             service=service,
+#             time_slot=start_slot,
+#             date=date,
+#             duration_hours=duration_hours,
+#             status="pending",
+#             total_payable=total_payable
+#         )
+
+#         # -------- RAZORPAY ORDER --------
+#         client = razorpay.Client(
+#             auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+#         )
+
+#         payable_amount_rupees = total_payable
+
+#         if is_partial_payment:
+#             partial_percentage = getattr(
+#                 settings, "PARTIAL_PAYMENT_PERCENTAGE", Decimal("0.25")
+#             )
+#             if not isinstance(partial_percentage, Decimal):
+#                 partial_percentage = Decimal(str(partial_percentage))
+
+#             payable_amount_rupees = (
+#                 total_payable * partial_percentage
+#             ).quantize(Decimal("0.01"))
+
+#         total_amount_paise = int(payable_amount_rupees * 100)
+
+#         order_data = {
+#             "amount": total_amount_paise,
+#             "currency": "INR",
+#             "receipt": str(booking.booking_id),
+#             "payment_capture": 1,
+#         }
+
+#         order = client.order.create(order_data)
+
+#         booking.payment_order_id = order.get("id")
+#         booking.save(update_fields=["payment_order_id"])
+
+#         # -------- RESPONSE --------
+#         response_data = self.get_serializer(booking).data
+#         response_data.update({
+#             "razorpay_order_id": order.get("id"),
+#             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+#             "amount": total_amount_paise,
+#             "is_partial_payment": is_partial_payment,
+#         })
+
+#         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class CreateRazorpayOrderView(APIView):
