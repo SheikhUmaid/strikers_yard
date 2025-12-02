@@ -287,12 +287,13 @@ class BookingCreateView(generics.CreateAPIView):
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         total_amount_rupees = total_payablee
         payable_amount_rupees = total_payablee
+        
 
         if is_partial_payment:
-            partial_percentage = getattr(settings, "PARTIAL_PAYMENT_PERCENTAGE", Decimal('0.25'))
-            if not isinstance(partial_percentage, Decimal):
-                partial_percentage = Decimal(str(partial_percentage))
-            payable_amount_rupees = (total_amount_rupees * partial_percentage).quantize(Decimal('0.01'))
+            # partial_percentage = getattr(settings, "PARTIAL_PAYMENT_PERCENTAGE", Decimal('0.25'))
+            # if not isinstance(partial_percentage, Decimal):
+            #     partial_percentage = Decimal(str(partial_percentage))
+            payable_amount_rupees = 500
 
         total_amount = int(payable_amount_rupees * 100)  # rupees → paise
 
@@ -304,6 +305,7 @@ class BookingCreateView(generics.CreateAPIView):
         }
         order = client.order.create(order_data)
         booking.payment_order_id = order.get("id")
+        
         booking.save()
         
         
@@ -531,6 +533,8 @@ class VerifyPaymentView(APIView):
             booking.payment_id = payment_id
             booking.payment_signature = signature
             booking.amount_paid = booking.total_payable
+            if is_partial_payment:
+                booking.amount_paid = Decimal("500.00")
             booking.status = "partial" if is_partial_payment else "paid"
             booking.save()
             
