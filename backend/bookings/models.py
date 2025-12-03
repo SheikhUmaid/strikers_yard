@@ -94,8 +94,13 @@ class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='bookings')
     date = models.DateField()
-    time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)  # starting slot
-    duration_hours = models.PositiveIntegerField(default=1)  # new field
+    time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE) 
+    duration_hours = models.PositiveIntegerField(default=1)  
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
+    
+    
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)

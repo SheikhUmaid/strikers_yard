@@ -14,7 +14,7 @@ from bookings.serializers import TimeSlotSerializer, BookingSerializer
 from bookings.models import Booking, TimeSlot, Service
 from bookings.serializers import BookingSerializer, ServiceSerializer
 from bookings.util_email import send_booking_emails
-from bookings.tasks import send_booking_emails_task
+from bookings.tasks import send_booking_emails_task, expire_pending_booking
 
 
 
@@ -24,7 +24,9 @@ from django.core.mail import send_mail
 from datetime import datetime, time
 from decimal import Decimal
 import os
+from datetime import timedelta
 
+from django.utils import timezone
 
 
 
@@ -53,13 +55,13 @@ def request_otp(request):
     # TODO: integrate SMS API (Twilio, MSG91, etc.)
     
     # Send email with OTP
-    send_mail(
-        subject="Your OTP Code",
-        message=f"Your OTP code is {otp_code}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[phone],  # Replace with actual SMS gateway email
-        fail_silently=False,
-    )
+    # send_mail(
+    #     subject="Your OTP Code",
+    #     message=f"Your OTP code is {otp_code}",
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[phone],  # Replace with actual SMS gateway email
+    #     fail_silently=False,
+    # )
     print(f"🔐 OTP for {phone} is {otp_code}")  # For now: print in console
 
     return Response({"message": "OTP sent successfully"}, status=200)
@@ -207,6 +209,7 @@ class BookingCreateView(generics.CreateAPIView):
     
 
     def create(self, request, *args, **kwargs):
+        
         user = request.user
         if not user or not user.is_authenticated:
             return Response(
@@ -218,6 +221,7 @@ class BookingCreateView(generics.CreateAPIView):
         date = request.data.get("date")
         duration_hours = int(request.data.get("duration_hours", 1))
         is_partial_payment = request.data.get("is_partial_payment", False)
+        expires_at = timezone.now() + timedelta(minutes=12)
         if isinstance(is_partial_payment, str):
             is_partial_payment = is_partial_payment.lower() in ("true", "1", "yes")
         else:
@@ -281,7 +285,10 @@ class BookingCreateView(generics.CreateAPIView):
             date=date,
             duration_hours=duration_hours,
             status="pending",
-            total_payable=total_payablee)
+            total_payable=total_payablee,
+            expires_at=expires_at)
+        
+        expire_pending_booking(booking.id, schedule=booking.expires_at)
 
         # Razorpay order creation
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))

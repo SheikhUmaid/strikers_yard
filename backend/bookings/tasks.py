@@ -2,6 +2,7 @@ from background_task import background
 from django.core.mail import send_mail
 from django.conf import settings
 from bookings.models import Booking, TimeSlot
+from django.utils import timezone
 
 
 @background(schedule=1)
@@ -62,3 +63,18 @@ def send_booking_emails_task(booking_id):
         recipient_list=[settings.OWNER_EMAIL],
         fail_silently=False,
     )
+
+
+
+
+@background(schedule=0)
+def expire_pending_booking(booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id)
+    except Booking.DoesNotExist:
+        return
+
+    if booking.status != 'pending':
+        return
+    booking.status = 'cancelled'
+    booking.save(update_fields=['status'])
