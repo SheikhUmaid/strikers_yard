@@ -9,7 +9,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-
+env
 # Django specific files
 *.pyc
 *.pyo
@@ -40,3 +40,7 @@ env/
 *.swo
 .DS_Store
 Thumbs.db
+
+strikers_yard_frontend/
+env
+env.*
