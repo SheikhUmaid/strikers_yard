@@ -27,7 +27,7 @@ load_dotenv(BASE_DIR / "env")
 SECRET_KEY = os.getenv("DJANGO_SECRET", "django-insecure-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "127.0.0.1:5173",
@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
     "210.79.128.140",
     "127.0.0.1",
     "api.strikersyard.com",
+    "6959-2409-40f2-121-7da2-3e14-d07-5cae-7642.ngrok-free.app"
 ]
 
 AUTH_USER_MODEL = "bookings.User"
@@ -60,6 +61,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Razorpay credentials
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_RdfrUJ69Of4i9F")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "BJ1NCxwSdYJl5gB252DSMyym")
+RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here")
 
 PARTIAL_PAYMENT_PERCENTAGE = Decimal(".50")
 

@@ -28,6 +28,11 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 
@@ -596,3 +601,66 @@ class BookingDetailView(generics.RetrieveAPIView):
 @api_view(['GET'])
 def health_check(request):
     return Response({"status": "ok"}, status=200)
+
+class RazorpayWebhookView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        webhook_secret = getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', '')
+        webhook_signature = request.headers.get('X-Razorpay-Signature')
+
+        if not webhook_signature:
+            logger.error("Missing Razorpay Signature")
+            return Response({"error": "Missing signature"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            client.utility.verify_webhook_signature(
+                request.body.decode('utf-8'),
+                webhook_signature,
+                webhook_secret
+            )
+        except razorpay.errors.SignatureVerificationError:
+            logger.error("Invalid Webhook Signature")
+            return Response({"error": "Invalid signature"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error in webhook verification: {str(e)}")
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            payload = json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response({"error": "Invalid JSON"}, status=status.HTTP_400_BAD_REQUEST)
+
+        event = payload.get('event')
+        
+        # Handle payment captured or order paid events
+        if event in ['order.paid', 'payment.captured']:
+            try:
+                payment_entity = payload['payload']['payment']['entity']
+                order_id = payment_entity.get('order_id')
+                payment_id = payment_entity.get('id')
+                amount_paid_rupees = Decimal(payment_entity.get('amount', 0)) / 100
+                
+                if order_id:
+                    booking = Booking.objects.filter(payment_order_id=order_id).first()
+                    
+                    if booking and booking.status == 'pending':
+                        booking.payment_id = payment_id
+                        booking.amount_paid = amount_paid_rupees
+                        
+                        if amount_paid_rupees >= booking.total_payable:
+                            booking.status = 'paid'
+                        elif amount_paid_rupees > 0:
+                            booking.status = 'partial'
+                            
+                        booking.save()
+                        
+                        send_booking_emails_task(booking.id)
+                        logger.info(f"Webhook updated booking {booking.booking_id} status to {booking.status}")
+            except KeyError as e:
+                logger.error(f"Missing expected key in webhook payload: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error processing webhook payload: {str(e)}")
+                
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
