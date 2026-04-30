@@ -117,8 +117,16 @@ class Booking(models.Model):
     payment_signature = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
-        unique_together = ('date', 'time_slot',)
-        ordering = ['-created_at']
+       constraints = [
+            models.UniqueConstraint(
+                fields=['date', 'time_slot'],
+                condition=models.Q(status__in=['pending', 'partial', 'paid']),
+                name='unique_active_booking_slot'
+            )
+        ]
+
+    def get_day(self):
+        return self.date.strftime('%A')
 
     def __str__(self):
         return f"{self.user} - {self.service.name} ({self.date} {self.time_slot}) {self.status}"

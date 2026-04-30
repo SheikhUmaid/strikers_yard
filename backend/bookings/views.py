@@ -301,7 +301,6 @@ class BookingCreateView(generics.CreateAPIView):
             # if not isinstance(partial_percentage, Decimal):
             #     partial_percentage = Decimal(str(partial_percentage))
             payable_amount_rupees = 500
-
         total_amount = int(payable_amount_rupees * 100)  # rupees → paise
 
         order_data = {

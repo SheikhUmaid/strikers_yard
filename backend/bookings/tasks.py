@@ -28,7 +28,8 @@ def send_booking_emails_task(booking_id):
     end_slot = all_slots[start_index + booking.duration_hours - 1]
 
     amount_paid = booking.amount_paid
-
+    start_time_formatted = start_slot.start_time.strftime("%I:%M %p").lstrip("0")
+    end_time_formatted = end_slot.end_time.strftime("%I:%M %p").lstrip("0")
     # ✅ User email
     send_mail(
         subject="Booking Confirmed ✅",
@@ -36,7 +37,7 @@ def send_booking_emails_task(booking_id):
             f"Your booking is confirmed.\n\n"
             f"Service: {service.name}\n"
             f"Date: {booking.date}\n"
-            f"Time: {start_slot.start_time} - {end_slot.end_time}\n"
+            f"Time: {start_time_formatted} - {end_time_formatted}\n"
             f"Duration: {booking.duration_hours} hour(s)\n"
             f"Amount Paid: ₹{amount_paid}\n"
             f"Booking ID: {booking.booking_id}\n"
@@ -54,7 +55,7 @@ def send_booking_emails_task(booking_id):
             f"Customer: {user.name}\n"
             f"Service: {service.name}\n"
             f"Date: {booking.date}\n"
-            f"Time: {start_slot.start_time} - {end_slot.end_time}\n"
+            f"Time: {start_time_formatted} - {end_time_formatted}\n"
             f"Duration: {booking.duration_hours} hour(s)\n"
             f"Status: {booking.status}\n"
             f"Booking ID: {booking.booking_id}\n"

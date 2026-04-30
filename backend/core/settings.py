@@ -27,7 +27,7 @@ load_dotenv(BASE_DIR / "env")
 SECRET_KEY = os.getenv("DJANGO_SECRET", "django-insecure-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "127.0.0.1:5173",
@@ -68,6 +68,7 @@ PARTIAL_PAYMENT_PERCENTAGE = Decimal(".50")
 INSTALLED_APPS = [
     "jazzmin",
     "corsheaders",
+    "rangefilter",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -238,8 +239,8 @@ print(EMAIL_HOST_USER)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_SUBJECT_PREFIX = "[Strikers Yard]"
-OWNER_EMAIL = os.getenv("OWNER_EMAIL", "taryqu1234@gmail.com")
-
+OWNER_EMAIL = os.getenv("OWNER_EMAIL", "muheedfayaz10@gmail.com")
+print(OWNER_EMAIL)
 
 # from datetime import time
 # from core.models import TimeSlot   # adjust app name if different
