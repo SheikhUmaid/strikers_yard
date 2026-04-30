@@ -254,7 +254,7 @@ class BookingCreateView(generics.CreateAPIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Check if any of those slots are already booked
-        if Booking.objects.filter(time_slot__in=required_slots, date=date, service=service,  status__in=['pending', 'partial', 'paid']).exists():
+        if Booking.objects.filter(time_slot__in=required_slots, date=date, service=service).exists():
             print("Required slo2ts:", required_slots)
             return Response({"error": "One or more selected hours are already booked."},
                             status=status.HTTP_400_BAD_REQUEST)
