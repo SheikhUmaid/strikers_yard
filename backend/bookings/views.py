@@ -58,14 +58,68 @@ def request_otp(request):
     OTP.objects.create(phone_number=phone, code=otp_code)
 
     # TODO: integrate SMS API (Twilio, MSG91, etc.)
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px;">
+        <tr>
+            <td align="center">
+                <table width="500" cellpadding="0" cellspacing="0"
+                       style="background:#ffffff;border-radius:8px;padding:40px;">
+                    
+                    <tr>
+                        <td align="center">
+                            <h2 style="color:#333333;margin-bottom:10px;">
+                                Verification Code
+                            </h2>
+
+                            <p style="color:#555555;font-size:16px;line-height:24px;">
+                                Use the following OTP to continue your verification process.
+                            </p>
+
+                            <div style="
+                                margin:30px 0;
+                                font-size:32px;
+                                font-weight:bold;
+                                letter-spacing:6px;
+                                color:#111111;
+                            ">
+                                {otp_code}
+                            </div>
+
+                            <p style="color:#777777;font-size:14px;line-height:22px;">
+                                This code will expire shortly. If you did not request this code,
+                                you can safely ignore this email.
+                            </p>
+
+                            <hr style="border:none;border-top:1px solid #eeeeee;margin:30px 0;">
+
+                            <p style="color:#999999;font-size:12px;">
+                                Please do not reply to this email.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    """
     
     # Send email with OTP
     send_mail(
-        subject="Your OTP Code",
+        subject="Your Verification Code",
         message=f"Your OTP code is {otp_code}",
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[phone],  # Replace with actual SMS gateway email
+        recipient_list=[phone],  # ideally actual email address
         fail_silently=False,
+        html_message=html_content
     )
     print(f"🔐 OTP for {phone} is {otp_code}")  # For now: print in console
 
