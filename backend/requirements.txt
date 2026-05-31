@@ -13,10 +13,12 @@ click==8.3.0
 colorama==0.4.6
 dj-database-url==3.0.1
 Django==5.2.8
+django-anymail==15.0
 django-background-tasks==1.2.8
 django-cors-headers==4.9.0
 django-filter==25.2
 django-jazzmin==3.0.1
+django-rangefilter==0.9.1
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 docutils==0.19
