@@ -27,3 +27,15 @@ class BookingAdmin(admin.ModelAdmin):
     
     # Optional: Add search fields and list displays to make it more readable
     list_display = ('user', 'service', 'date', 'time_slot', 'duration_hours', 'status', 'get_day')
+
+    list_filter = (
+        'date',               # Built-in date filter
+        'service',            # Filter by service
+        'status',             # Filter by booking status
+        'time_slot',          # Filter by time slot (added)
+        'duration_hours',     # Filter by duration (added)
+        # 'payment_status',     # Filter by payment status (added)
+        # 'payment_method',     # Filter by payment method (added)
+    )
+
+

@@ -318,7 +318,7 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1.2fr;
+            grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr 1.2fr;
             gap: 16px;
             align-items: flex-end;
         }
@@ -1057,6 +1057,16 @@
                     <label for="filter-date">Date filter</label>
                     <input type="date" id="filter-date" class="form-control" onchange="filterBookings();">
                 </div>
+
+                <div class="form-group">
+                    <label for="filter-slot">Time Slot</label>
+                    <select id="filter-slot" class="form-control" onchange="filterBookings();">
+                        <option value="">All Slots</option>
+                        {% for slot in timeslots %}
+                            <option value="{{ slot }}">{{ slot }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </section>
 
@@ -1093,7 +1103,8 @@
                                 data-email="{{ booking.user.email|default_if_none:'' }}"
                                 data-service="{{ booking.service.name }}"
                                 data-status="{{ booking.status }}"
-                                data-date="{{ booking.date|date:'Y-m-d' }}">
+                                data-date="{{ booking.date|date:'Y-m-d' }}"
+                                data-slot="{{ booking.time_slot }}">
                                 
                                 <td class="ref-cell">
                                     <div style="font-weight: 700; color: var(--primary-dark);">{{ booking.date|date:"d M Y" }}</div>
@@ -1401,6 +1412,7 @@
             const serviceFilter = document.getElementById('filter-service').value;
             const statusFilter = document.getElementById('filter-status').value;
             const dateFilter = document.getElementById('filter-date').value;
+            const slotFilter = document.getElementById('filter-slot').value;
 
             const rows = document.querySelectorAll('.booking-row');
             let visibleCount = 0;
@@ -1413,6 +1425,7 @@
                 const service = row.getAttribute('data-service');
                 const status = row.getAttribute('data-status');
                 const date = row.getAttribute('data-date');
+                const slot = row.getAttribute('data-slot');
 
                 const matchesSearch = !searchQuery || 
                                      ref.includes(searchQuery) || 
@@ -1423,8 +1436,9 @@
                 const matchesService = !serviceFilter || service === serviceFilter;
                 const matchesStatus = !statusFilter || status === statusFilter;
                 const matchesDate = !dateFilter || date === dateFilter;
+                const matchesSlot = !slotFilter || slot === slotFilter;
 
-                if (matchesSearch && matchesService && matchesStatus && matchesDate) {
+                if (matchesSearch && matchesService && matchesStatus && matchesDate && matchesSlot) {
                     row.style.display = '';
                     visibleCount++;
                 } else {
