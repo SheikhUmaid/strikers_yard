@@ -21,9 +21,9 @@ admin.site.register(TimeSlot)
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     # This adds a nice date picker to your admin sidebar
-    list_filter = (
-        ('date', DateRangeFilter),
-    )
+    # list_filter = (
+    #     ('date', DateRangeFilter),
+    # )
     
     # Optional: Add search fields and list displays to make it more readable
     list_display = ('user', 'service', 'date', 'time_slot', 'duration_hours', 'status', 'get_day')

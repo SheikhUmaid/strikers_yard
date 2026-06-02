@@ -36,7 +36,8 @@ ALLOWED_HOSTS = [
     "210.79.128.140",
     "127.0.0.1",
     "api.strikersyard.com",
-    "6959-2409-40f2-121-7da2-3e14-d07-5cae-7642.ngrok-free.app"
+    "6959-2409-40f2-121-7da2-3e14-d07-5cae-7642.ngrok-free.app",
+    "*"
 ]
 
 AUTH_USER_MODEL = "bookings.User"
@@ -139,9 +140,12 @@ REST_FRAMEWORK = {
 }
 
 JAZZMIN_SETTINGS = {
-    "site_title": "My Admin",
-    "site_header": "My Admin Panel",
+    "site_title": "Strikers Yard Admin",
+    "site_header": "Strikers Yard Admin",
     "theme": "darkly",
+    "topmenu_links": [
+        {"name": "Custom Green Dashboard", "url": "/api/admin-dashboard/", "permissions": ["bookings.view_booking"]},
+    ],
 }
 LOGGING = {
     "version": 1,

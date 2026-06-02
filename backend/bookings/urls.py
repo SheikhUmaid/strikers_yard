@@ -11,6 +11,11 @@ from .views import (request_otp,
                     BookingDetailView,
                     MyBookingsView,
                     health_check,
+                    admin_bookings_dashboard,
+                    admin_check_slots,
+                    admin_booking_create,
+                    admin_booking_cancel,
+                    admin_booking_delete,
                     )
 
 urlpatterns = [
@@ -26,5 +31,11 @@ urlpatterns = [
     path('my-bookings/', MyBookingsView.as_view() ),
     path('bookings/<uuid:booking_id>/', BookingDetailView.as_view(), name='booking-detail'),
     path('health-check/', health_check, name='health_check'),
-
+    
+    # Custom Green Admin Dashboard
+    path('admin-dashboard/', admin_bookings_dashboard, name='admin_bookings_dashboard'),
+    path('admin-dashboard/check-slots/', admin_check_slots, name='admin_check_slots'),
+    path('admin-dashboard/booking/create/', admin_booking_create, name='admin_booking_create'),
+    path('admin-dashboard/booking/cancel/<uuid:booking_id>/', admin_booking_cancel, name='admin_booking_cancel'),
+    path('admin-dashboard/booking/delete/<uuid:booking_id>/', admin_booking_delete, name='admin_booking_delete'),
 ]

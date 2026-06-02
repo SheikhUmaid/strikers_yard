@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strikers Yard | Bookings Admin Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Emerald/Mint Theme Green Palette */
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --primary-light: #ecfdf5;
+            --primary-dark: #064e3b;
+            --primary-glow: rgba(16, 185, 129, 0.15);
+            
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            
+            /* Neutrals */
+            --bg-main: #f4f7f6;
+            --bg-sidebar: #0b221e;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --text-on-dark: #f3f4f6;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            
+            --font-headings: 'Space Grotesk', 'Inter', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            color: var(--text-on-dark);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            font-family: var(--font-headings);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .sidebar-brand i {
+            color: var(--primary);
+            filter: drop-shadow(0 0 5px var(--primary));
+        }
+
+        .sidebar-brand span {
+            color: var(--primary);
+        }
+
+        .sidebar-menu {
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #9ca3af;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #ffffff;
+        }
+
+        .menu-item.active i {
+            color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 13px;
+            color: #6b7280;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-footer a:hover {
+            color: var(--primary);
+        }
+
+        /* Main Content Styling */
+        main {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+            min-width: 0; /* Prevents flex items from overflowing */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header-title h1 {
+            font-family: var(--font-headings);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons styling */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+            font-family: var(--font-body);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        /* KPI Dashboard Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+
+        .stat-card.revenue::before { background-color: var(--success); }
+        .stat-card.active-bookings::before { background-color: var(--info); }
+        .stat-card.cancelled::before { background-color: var(--danger); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .stat-icon.bookings-icon { background-color: var(--primary-light); color: var(--primary); }
+        .stat-icon.revenue-icon { background-color: #ecfdf5; color: var(--success); }
+        .stat-icon.active-icon { background-color: #eff6ff; color: var(--info); }
+        .stat-icon.cancelled-icon { background-color: #fef2f2; color: var(--danger); }
+
+        .stat-value {
+            font-family: var(--font-headings);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Filter Controls */
+        .filter-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.2fr;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 900px) {
+            .filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: var(--font-body);
+            background-color: #ffffff;
+        }
+
+        .search-wrapper .form-control {
+            padding-left: 36px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        /* Data Table Styling */
+        .table-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            font-family: var(--font-headings);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            padding: 14px 24px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px 24px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Booking Reference Styling */
+        .ref-cell {
+            font-family: monospace;
+            font-weight: 600;
+            color: #334155;
+            font-size: 13px;
+        }
+
+        /* Customer Cell Styling */
+        .customer-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .customer-contact {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-paid { background-color: #d1fae5; color: #065f46; }
+        .badge-partial { background-color: #fef3c7; color: #92400e; }
+        .badge-pending { background-color: #ffedd5; color: #9a3412; }
+        .badge-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+        .service-badge {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        /* Table actions */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+
+        .btn-icon:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+        .btn-icon.view:hover {
+            color: var(--info);
+            border-color: rgba(59, 130, 246, 0.3);
+            background-color: #eff6ff;
+        }
+
+        .btn-icon.cancel:hover {
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+            background-color: #fffbeb;
+        }
+
+        .btn-icon.delete:hover {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+            background-color: #fef2f2;
+        }
+
+        .btn-icon:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            padding: 48px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h4 {
+            font-family: var(--font-headings);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        /* Modals style */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(11, 34, 30, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background-color: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-family: var(--font-headings);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: #f8fafc;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* Split layout in modals */
+        .modal-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-divider {
+            margin: 20px 0 16px;
+            border: none;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-section-title {
+            font-family: var(--font-headings);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Detail display inside modal */
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background-color: white;
+            color: var(--text-main);
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 280px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        .toast i {
+            font-size: 18px;
+        }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--warning); }
+
+        /* Dynamic Slot Selection Style */
+        .slot-option-booked {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+        }
+        
+        .helper-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Mobile Navigation Bar */
+        .mobile-nav {
+            display: none;
+            background-color: var(--bg-sidebar);
+            color: white;
+            padding: 14px 20px;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            box-shadow: var(--shadow-md);
+        }
+
+        .mobile-nav-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .mobile-nav-toggle:hover {
+            background-color: rgba(255,255,255,0.08);
+        }
+
+        .mobile-nav-brand {
+            font-family: var(--font-headings);
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-nav-brand i {
+            color: var(--primary);
+        }
+
+        .mobile-nav-brand span {
+            color: var(--primary);
+        }
+
+        /* Sidebar overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(11, 34, 30, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 98;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            main {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            aside {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 101;
+            }
+
+            aside.open {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                flex-grow: 1;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .modal-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .modal-container {
+                width: 96%;
+                max-height: 96vh;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .modal-footer {
+                padding: 12px 16px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px;
+            }
+            
+            td, th {
+                padding: 12px 16px;
+            }
+        }
+
+        /* Swipe hint indicator for table */
+        .table-scroll-hint {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            justify-content: flex-end;
+            padding: 0 4px;
+        }
+
+        @media (max-width: 768px) {
+            .table-scroll-hint {
+                display: inline-flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar();"></div>
+
+    <!-- Mobile Sticky Topbar -->
+    <div class="mobile-nav">
+        <button class="mobile-nav-toggle" id="mobile-sidebar-toggle" onclick="toggleSidebar();">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="mobile-nav-brand">
+            <i class="fa-solid fa-dumbbell"></i>
+            Strikers<span>Yard</span>
+        </div>
+        <div style="flex-grow: 1;"></div>
+        <button class="btn btn-primary" onclick="openAddBookingModal();" style="padding: 8px 12px; font-size: 13px;">
+            <i class="fa-solid fa-plus"></i> Add
+        </button>
+    </div>
+
+    <!-- Sidebar navigation -->
+    <aside id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-dumbbell"></i>
+            Strikers<span>Yard</span>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fa-solid fa-calendar-check"></i>
+                Bookings Dashboard
+            </a>
+            <a href="/admin/" class="menu-item">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                Django System Admin
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div>Logged in as <strong>{{ request.user.phone_number }}</strong></div>
+            <a href="/admin/logout/"><i class="fa-solid fa-right-from-bracket"></i> Log Out</a>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+        <header>
+            <div class="header-title">
+                <h1>Bookings Management</h1>
+                <p>Monitor, create, and manage bookings for Strikers Yard sports ground.</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.reload();">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+                <button class="btn btn-primary" onclick="openAddBookingModal();">
+                    <i class="fa-solid fa-plus"></i> Add New Booking
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI statistics cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Bookings</span>
+                    <div class="stat-icon bookings-icon">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-total-count">{{ total_bookings }}</div>
+            </div>
+            
+            <div class="stat-card revenue">
+                <div class="stat-header">
+                    <span class="stat-title">Total Revenue</span>
+                    <div class="stat-icon revenue-icon">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-revenue">₹{{ total_revenue }}</div>
+            </div>
+
+            <div class="stat-card active-bookings">
+                <div class="stat-header">
+                    <span class="stat-title">Active Bookings</span>
+                    <div class="stat-icon active-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-active">{{ active_bookings }}</div>
+            </div>
+
+            <div class="stat-card cancelled">
+                <div class="stat-header">
+                    <span class="stat-title">Cancelled</span>
+                    <div class="stat-icon cancelled-icon">
+                        <i class="fa-solid fa-ban"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="stat-cancelled">{{ cancelled_bookings }}</div>
+            </div>
+        </section>
+
+        <!-- Filters Section -->
+        <section class="filter-card">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label for="filter-search">Search Customers</label>
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="filter-search" class="form-control" placeholder="Search by name, phone, email, or booking ID..." oninput="filterBookings();">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-service">Sport/Service</label>
+                    <select id="filter-service" class="form-control" onchange="filterBookings();">
+                        <option value="">All Services</option>
+                        {% for service in services %}
+                            <option value="{{ service.name }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter-status">Payment Status</label>
+                    <select id="filter-status" class="form-control" onchange="filterBookings();">
+                        <option value="">All Statuses</option>
+                        <option value="paid">Paid</option>
+                        <option value="partial">Partially Paid</option>
+                        <option value="pending">Pending</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter-date">Date filter</label>
+                    <input type="date" id="filter-date" class="form-control" onchange="filterBookings();">
+                </div>
+            </div>
+        </section>
+
+        <!-- Table Listing section -->
+        <section class="table-card">
+            <div class="table-header">
+                <h3>Bookings Archive</h3>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="table-scroll-hint">
+                        <i class="fa-solid fa-left-right"></i> Swipe to scroll
+                    </div>
+                    <div class="table-badge"><span class="badge badge-paid" style="background-color: var(--primary-light); color: var(--primary-dark);" id="showing-count">{{ bookings|length }} shown</span></div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Ref / Date</th>
+                            <th>Customer info</th>
+                            <th>Sport / Slot</th>
+                            <th>Duration</th>
+                            <th>Financials</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                            <tr class="booking-row" 
+                                data-ref="{{ booking.booking_id }}"
+                                data-phone="{{ booking.user.phone_number }}"
+                                data-name="{{ booking.user.name|default_if_none:'' }}"
+                                data-email="{{ booking.user.email|default_if_none:'' }}"
+                                data-service="{{ booking.service.name }}"
+                                data-status="{{ booking.status }}"
+                                data-date="{{ booking.date|date:'Y-m-d' }}">
+                                
+                                <td class="ref-cell">
+                                    <div style="font-weight: 700; color: var(--primary-dark);">{{ booking.date|date:"d M Y" }}</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" title="{{ booking.booking_id }}">
+                                        ID: ...{{ booking.booking_id|stringformat:".8s" }}
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <div class="customer-name">{{ booking.user.name|default:"Unnamed User" }}</div>
+                                    <div class="customer-contact">
+                                        <span><i class="fa-solid fa-phone" style="font-size: 10px; margin-right: 4px;"></i> {{ booking.user.phone_number }}</span>
+                                        {% if booking.user.email %}
+                                            <span><i class="fa-solid fa-envelope" style="font-size: 10px; margin-right: 4px;"></i> {{ booking.user.email }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <span class="service-badge">{{ booking.service.name }}</span>
+                                    <div style="font-size: 13px; font-weight: 500; color: var(--text-main); margin-top: 6px;">
+                                        <i class="fa-regular fa-clock" style="margin-right: 4px;"></i> {{ booking.time_slot }}
+                                    </div>
+                                </td>
+                                
+                                <td style="font-weight: 600;">
+                                    {{ booking.duration_hours }} hr{{ booking.duration_hours|pluralize }}
+                                </td>
+                                
+                                <td>
+                                    <div style="font-weight: 700;">₹{{ booking.amount_paid }}</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">of ₹{{ booking.total_payable }}</div>
+                                </td>
+                                
+                                <td>
+                                    {% if booking.status == 'paid' %}
+                                        <span class="badge badge-paid"><i class="fa-solid fa-check-double"></i> Paid</span>
+                                    {% elif booking.status == 'partial' %}
+                                        <span class="badge badge-partial"><i class="fa-solid fa-coins"></i> Partial</span>
+                                    {% elif booking.status == 'pending' %}
+                                        <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending</span>
+                                    {% elif booking.status == 'cancelled' %}
+                                        <span class="badge badge-cancelled"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="actions-cell">
+                                    <!-- View Details -->
+                                    <button class="btn-icon view" title="View details" 
+                                            onclick="openDetailModal({
+                                                id: '{{ booking.booking_id }}',
+                                                date: '{{ booking.date|date:"d M Y" }}',
+                                                user: '{{ booking.user.name|default:"Unnamed User" }}',
+                                                phone: '{{ booking.user.phone_number }}',
+                                                email: '{{ booking.user.email|default:"None" }}',
+                                                service: '{{ booking.service.name }}',
+                                                slot: '{{ booking.time_slot }}',
+                                                duration: '{{ booking.duration_hours }} hours',
+                                                payable: '₹{{ booking.total_payable }}',
+                                                paid: '₹{{ booking.amount_paid }}',
+                                                status: '{{ booking.status }}',
+                                                created: '{{ booking.created_at|date:"d M Y, H:i" }}',
+                                                updated: '{{ booking.updated_at|date:"d M Y, H:i" }}',
+                                                payment_id: '{{ booking.payment_id|default:"None" }}',
+                                                order_id: '{{ booking.payment_order_id|default:"None" }}'
+                                            });">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                    
+                                    <!-- Cancel Booking -->
+                                    {% if booking.status != 'cancelled' %}
+                                        <button class="btn-icon cancel" title="Cancel booking" onclick="confirmCancelBooking('{{ booking.booking_id }}');">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    {% else %}
+                                        <button class="btn-icon cancel" disabled title="Already cancelled">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    {% endif %}
+                                    
+                                    <!-- Delete Booking -->
+                                    <button class="btn-icon delete" title="Delete record" onclick="confirmDeleteBooking('{{ booking.booking_id }}');">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                        <h4>No bookings registered</h4>
+                                        <p>You can create a new booking for a customer using the "Add New Booking" button above.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal 1: Add Booking Modal -->
+    <div id="add-booking-overlay" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Add Customer Booking</h3>
+                <button class="modal-close" onclick="closeAddBookingModal();">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-booking-form">
+                    {% csrf_token %}
+                    <!-- User Details Section -->
+                    <div class="modal-section-title">1. Customer Information</div>
+                    <div class="modal-grid-2">
+                        <div class="form-group">
+                            <label for="add-phone">Phone number *</label>
+                            <input type="text" id="add-phone" name="phone_number" class="form-control" placeholder="e.g. 9876543210" required>
+                            <span class="helper-text">Enter number to link or create user account.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-name">Customer Name</label>
+                            <input type="text" id="add-name" name="name" class="form-control" placeholder="Full name">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="add-email">Email Address</label>
+                        <input type="email" id="add-email" name="email" class="form-control" placeholder="name@example.com">
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Booking Details Section -->
+                    <div class="modal-section-title">2. Reservation Details</div>
+                    <div class="modal-grid-2">
+                        <div class="form-group">
+                            <label for="add-service">Select Sport / Service *</label>
+                            <select id="add-service" name="service_id" class="form-control" required onchange="onBookingInputsChange();">
+                                <option value="">Choose Service...</option>
+                                {% for service in services %}
+                                    <option value="{{ service.id }}">{{ service.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-date">Reservation Date *</label>
+                            <input type="date" id="add-date" name="date" class="form-control" required onchange="onBookingInputsChange();">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="form-group">
+                            <label for="add-timeslot">Select Start Slot *</label>
+                            <select id="add-timeslot" name="time_slot_id" class="form-control" required disabled onchange="calculatePrice();">
+                                <option value="">Choose service & date first...</option>
+                            </select>
+                            <span class="helper-text" id="slot-status-text">Select service & date to query slots.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-duration">Duration (Hours) *</label>
+                            <select id="add-duration" name="duration_hours" class="form-control" required onchange="calculatePrice();">
+                                <option value="1">1 Hour</option>
+                                <option value="2">2 Hours</option>
+                                <option value="3">3 Hours</option>
+                                <option value="4">4 Hours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Financials Section -->
+                    <div class="modal-section-title">3. Pricing & Payment</div>
+                    <div class="modal-grid-2">
+                        <div class="form-group">
+                            <label for="add-total">Total Calculated Cost (₹)</label>
+                            <input type="number" id="add-total" name="total_payable" class="form-control" value="0" step="0.01" min="0" oninput="overridePrice();">
+                            <span class="helper-text">Calculates automatically, or override.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-status">Payment Status</label>
+                            <select id="add-status" name="status" class="form-control" onchange="adjustAmountPaid();">
+                                <option value="paid">Paid (Full)</option>
+                                <option value="partial">Partially Paid</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="width: 50%;">
+                        <label for="add-paid">Amount Collected (₹)</label>
+                        <input type="number" id="add-paid" name="amount_paid" class="form-control" value="0" step="0.01" min="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddBookingModal();">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewBooking();" id="btn-submit-booking">
+                    <i class="fa-solid fa-calendar-check"></i> Book Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: View Details Modal -->
+    <div id="view-details-overlay" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Booking Specific Details</h3>
+                <button class="modal-close" onclick="closeDetailModal();">&times;</button>
+            </div>
+            <div class="modal-body" id="detail-modal-body">
+                <!-- Loaded dynamically by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailModal();">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JSON Data Blocks -->
+    <script id="services-data" type="application/json">
+        [
+            {% for s in services %}
+                {
+                    "id": {{ s.id }},
+                    "name": "{{ s.name }}",
+                    "price_per_hour": {{ s.price_per_hour }},
+                    "evening_pricing": {{ s.evening_pricing }}
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    <script id="timeslots-data" type="application/json">
+        [
+            {% for ts in timeslots %}
+                {
+                    "id": {{ ts.id }},
+                    "start_time": "{{ ts.start_time|time:'H:i' }}",
+                    "end_time": "{{ ts.end_time|time:'H:i' }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+
+    <!-- JavaScript core logic -->
+    <script>
+        // Sidebar Mobile Toggles
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Load data blocks
+        const services = JSON.parse(document.getElementById('services-data').textContent);
+        const timeslots = JSON.parse(document.getElementById('timeslots-data').textContent);
+        let currentAvailableSlots = [];
+        let isPriceOverridden = false;
+
+        // CSRF Token Helper
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'fa-circle-check';
+            if (type === 'error') icon = 'fa-circle-exclamation';
+            if (type === 'warning') icon = 'fa-triangle-exclamation';
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${icon}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 50);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Filter / Search Bookings
+        function filterBookings() {
+            const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+            const serviceFilter = document.getElementById('filter-service').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const dateFilter = document.getElementById('filter-date').value;
+
+            const rows = document.querySelectorAll('.booking-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const ref = row.getAttribute('data-ref').toLowerCase();
+                const phone = row.getAttribute('data-phone').toLowerCase();
+                const name = row.getAttribute('data-name').toLowerCase();
+                const email = row.getAttribute('data-email').toLowerCase();
+                const service = row.getAttribute('data-service');
+                const status = row.getAttribute('data-status');
+                const date = row.getAttribute('data-date');
+
+                const matchesSearch = !searchQuery || 
+                                     ref.includes(searchQuery) || 
+                                     phone.includes(searchQuery) || 
+                                     name.includes(searchQuery) || 
+                                     email.includes(searchQuery);
+                                     
+                const matchesService = !serviceFilter || service === serviceFilter;
+                const matchesStatus = !statusFilter || status === statusFilter;
+                const matchesDate = !dateFilter || date === dateFilter;
+
+                if (matchesSearch && matchesService && matchesStatus && matchesDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            document.getElementById('showing-count').innerText = `${visibleCount} shown`;
+        }
+
+        // Open Detail Modal
+        function openDetailModal(data) {
+            const body = document.getElementById('detail-modal-body');
+            
+            let statusBadge = '';
+            if (data.status === 'paid') statusBadge = '<span class="badge badge-paid"><i class="fa-solid fa-check-double"></i> Paid</span>';
+            else if (data.status === 'partial') statusBadge = '<span class="badge badge-partial"><i class="fa-solid fa-coins"></i> Partially Paid</span>';
+            else if (data.status === 'pending') statusBadge = '<span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending</span>';
+            else statusBadge = '<span class="badge badge-cancelled"><i class="fa-solid fa-ban"></i> Cancelled</span>';
+
+            body.innerHTML = `
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 13px; color: var(--text-muted); font-family: monospace; word-break: break-all;">
+                        BOOKING ID: ${data.id}
+                    </div>
+                    <div style="margin-top: 10px;">${statusBadge}</div>
+                </div>
+                
+                <div class="modal-section-title">Customer Information</div>
+                <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${data.user}</span></div>
+                <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${data.phone}</span></div>
+                <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${data.email}</span></div>
+                
+                <div class="modal-section-title" style="margin-top: 24px;">Reservation Information</div>
+                <div class="detail-row"><span class="detail-label">Sport / Service</span><span class="detail-value" style="font-weight: 600; color: var(--primary-dark);">${data.service}</span></div>
+                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${data.date}</span></div>
+                <div class="detail-row"><span class="detail-label">Time Slot</span><span class="detail-value">${data.slot}</span></div>
+                <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${data.duration}</span></div>
+                
+                <div class="modal-section-title" style="margin-top: 24px;">Financial Information</div>
+                <div class="detail-row"><span class="detail-label">Total Cost</span><span class="detail-value" style="font-weight:700;">${data.payable}</span></div>
+                <div class="detail-row"><span class="detail-label">Amount Paid</span><span class="detail-value" style="color: var(--success); font-weight:700;">${data.paid}</span></div>
+                
+                <div class="modal-section-title" style="margin-top: 24px;">System Audit Meta</div>
+                <div class="detail-row"><span class="detail-label">Razorpay Order ID</span><span class="detail-value" style="font-family: monospace; font-size:12px;">${data.order_id}</span></div>
+                <div class="detail-row"><span class="detail-label">Razorpay Payment ID</span><span class="detail-value" style="font-family: monospace; font-size:12px;">${data.payment_id}</span></div>
+                <div class="detail-row"><span class="detail-label">Created At</span><span class="detail-value">${data.created}</span></div>
+                <div class="detail-row"><span class="detail-label">Last Updated</span><span class="detail-value">${data.updated}</span></div>
+            `;
+            
+            document.getElementById('view-details-overlay').classList.add('open');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('view-details-overlay').classList.remove('open');
+        }
+
+        // Add Booking Modal Controls
+        function openAddBookingModal() {
+            document.getElementById('add-booking-form').reset();
+            isPriceOverridden = false;
+            document.getElementById('add-timeslot').disabled = true;
+            document.getElementById('add-timeslot').innerHTML = '<option value="">Choose service & date first...</option>';
+            document.getElementById('slot-status-text').innerText = 'Select service & date to query slots.';
+            document.getElementById('add-booking-overlay').classList.add('open');
+        }
+
+        function closeAddBookingModal() {
+            document.getElementById('add-booking-overlay').classList.remove('open');
+        }
+
+        // Fetch Slots Availability on Service or Date Change
+        function onBookingInputsChange() {
+            const serviceId = document.getElementById('add-service').value;
+            const date = document.getElementById('add-date').value;
+            const slotDropdown = document.getElementById('add-timeslot');
+            const slotStatusText = document.getElementById('slot-status-text');
+
+            if (!serviceId || !date) {
+                slotDropdown.disabled = true;
+                slotDropdown.innerHTML = '<option value="">Choose service & date first...</option>';
+                slotStatusText.innerText = 'Select service & date to query slots.';
+                return;
+            }
+
+            slotStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking slot availability...';
+            slotDropdown.disabled = true;
+
+            fetch(`/api/admin-dashboard/check-slots/?date=${date}&service_id=${serviceId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Network response error checking slots");
+                    return res.json();
+                })
+                .then(data => {
+                    slotDropdown.innerHTML = '<option value="">Select Time Slot...</option>';
+                    currentAvailableSlots = data.slots;
+                    
+                    data.slots.forEach(slot => {
+                        const opt = document.createElement('option');
+                        opt.value = slot.id;
+                        
+                        if (slot.is_taken) {
+                            opt.innerText = `${slot.start_time} - ${slot.end_time} [BOOKED]`;
+                            opt.className = 'slot-option-booked';
+                            opt.disabled = true;
+                        } else {
+                            opt.innerText = `${slot.start_time} - ${slot.end_time}`;
+                        }
+                        slotDropdown.appendChild(opt);
+                    });
+                    
+                    slotDropdown.disabled = false;
+                    slotStatusText.innerText = 'Available slots loaded successfully.';
+                    calculatePrice();
+                })
+                .catch(err => {
+                    console.error(err);
+                    slotStatusText.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> Error loading slots!</span>';
+                });
+        }
+
+        // Calculate Pricing based on Service and selected slot/duration
+        function calculatePrice() {
+            if (isPriceOverridden) return;
+
+            const serviceId = parseInt(document.getElementById('add-service').value);
+            const timeSlotId = parseInt(document.getElementById('add-timeslot').value);
+            const duration = parseInt(document.getElementById('add-duration').value);
+            
+            const totalInput = document.getElementById('add-total');
+            const paidInput = document.getElementById('add-paid');
+            const paymentStatus = document.getElementById('add-status').value;
+
+            if (!serviceId || !timeSlotId || !duration) {
+                totalInput.value = 0;
+                paidInput.value = 0;
+                return;
+            }
+
+            const selectedService = services.find(s => s.id === serviceId);
+            if (!selectedService) return;
+
+            // Find current slot index in timeslots data
+            const startSlotIndex = timeslots.findIndex(ts => ts.id === timeSlotId);
+            if (startSlotIndex === -1) return;
+
+            let totalPayable = 0;
+            for (let i = 0; i < duration; i++) {
+                const currentSlotIndex = startSlotIndex + i;
+                if (currentSlotIndex >= timeslots.length) break;
+
+                const slot = timeslots[currentSlotIndex];
+                // Check if starting time is >= 17:00 (evening)
+                const startHour = parseInt(slot.start_time.split(':')[0]);
+                
+                if (startHour >= 17) {
+                    totalPayable += parseFloat(selectedService.evening_pricing);
+                } else {
+                    totalPayable += parseFloat(selectedService.price_per_hour);
+                }
+            }
+
+            totalInput.value = totalPayable.toFixed(2);
+            
+            // Adjust amount paid automatically
+            adjustAmountPaid();
+        }
+
+        function overridePrice() {
+            isPriceOverridden = true;
+            adjustAmountPaid();
+        }
+
+        function adjustAmountPaid() {
+            const total = parseFloat(document.getElementById('add-total').value) || 0;
+            const status = document.getElementById('add-status').value;
+            const paidInput = document.getElementById('add-paid');
+
+            if (status === 'paid') {
+                paidInput.value = total.toFixed(2);
+            } else if (status === 'partial') {
+                paidInput.value = (total / 2).toFixed(2); // default to 50% partial
+            } else {
+                paidInput.value = '0.00';
+            }
+        }
+
+        // Submit Booking Form via AJAX
+        function submitNewBooking() {
+            const form = document.getElementById('add-booking-form');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const submitBtn = document.getElementById('btn-submit-booking');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Booking...';
+
+            const formData = new FormData(form);
+
+            fetch('/api/admin-dashboard/booking/create/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeAddBookingModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showToast(data.error || 'Failed to create booking', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Book Now';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('An unexpected network error occurred!', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Book Now';
+            });
+        }
+
+        // Cancel Booking via AJAX
+        function confirmCancelBooking(bookingId) {
+            if (confirm("Are you sure you want to cancel this booking? This will set status to Cancelled and release the reserved time slot.")) {
+                fetch(`/api/admin-dashboard/booking/cancel/${bookingId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(data.error || 'Failed to cancel booking', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Failed to connect to the server.', 'error');
+                });
+            }
+        }
+
+        // Delete Booking via AJAX
+        function confirmDeleteBooking(bookingId) {
+            if (confirm("WARNING: This will completely delete this booking record permanently. Are you sure you want to proceed?")) {
+                fetch(`/api/admin-dashboard/booking/delete/${bookingId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(data.error || 'Failed to delete booking', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Failed to connect to the server.', 'error');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -718,3 +718,193 @@ class RazorpayWebhookView(APIView):
                 logger.error(f"Error processing webhook payload: {str(e)}")
                 
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
+# Custom Green-Themed Admin Dashboard Views
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.db.models import Sum
+
+@staff_member_required
+def admin_bookings_dashboard(request):
+    bookings = Booking.objects.all().select_related('user', 'service', 'time_slot').order_by('-created_at')
+    services = Service.objects.all()
+    timeslots = TimeSlot.objects.all().order_by('start_time')
+    
+    # Calculate stats
+    total_bookings = bookings.count()
+    total_revenue = bookings.filter(status__in=['paid', 'partial']).aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
+    active_bookings = bookings.filter(status__in=['pending', 'partial', 'paid']).count()
+    cancelled_bookings = bookings.filter(status='cancelled').count()
+    
+    context = {
+        'bookings': bookings,
+        'services': services,
+        'timeslots': timeslots,
+        'total_bookings': total_bookings,
+        'total_revenue': total_revenue,
+        'active_bookings': active_bookings,
+        'cancelled_bookings': cancelled_bookings,
+    }
+    return render(request, 'bookings/admin_dashboard.html', context)
+
+
+@staff_member_required
+def admin_check_slots(request):
+    date_str = request.GET.get('date')
+    service_id = request.GET.get('service_id')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Date is required'}, status=400)
+        
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format (YYYY-MM-DD)'}, status=400)
+        
+    slots = list(TimeSlot.objects.all().order_by('start_time'))
+    slot_index = {slot.id: i for i, slot in enumerate(slots)}
+    booked_indices = set()
+    
+    # Get all active bookings for this date
+    bookings = Booking.objects.filter(
+        date=date_obj,
+        status__in=['pending', 'partial', 'paid']
+    ).select_related('time_slot')
+    
+    for booking in bookings:
+        start_idx = slot_index.get(booking.time_slot_id)
+        if start_idx is None:
+            continue
+        for i in range(start_idx, min(start_idx + booking.duration_hours, len(slots))):
+            booked_indices.add(i)
+            
+    response_slots = []
+    for i, slot in enumerate(slots):
+        response_slots.append({
+            'id': slot.id,
+            'start_time': slot.start_time.strftime('%I:%M %p'),
+            'end_time': slot.end_time.strftime('%I:%M %p'),
+            'is_taken': i in booked_indices
+        })
+        
+    return JsonResponse({'slots': response_slots})
+
+
+@staff_member_required
+@require_POST
+def admin_booking_create(request):
+    try:
+        phone_number = request.POST.get('phone_number')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        service_id = request.POST.get('service_id')
+        date_str = request.POST.get('date')
+        time_slot_id = request.POST.get('time_slot_id')
+        duration_hours = int(request.POST.get('duration_hours', 1))
+        status_choice = request.POST.get('status', 'paid')
+        
+        total_payable = Decimal(request.POST.get('total_payable', '0.00'))
+        amount_paid = Decimal(request.POST.get('amount_paid', '0.00'))
+        
+        if not all([phone_number, service_id, date_str, time_slot_id]):
+            return JsonResponse({'error': 'Missing required fields'}, status=400)
+            
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        with transaction.atomic():
+            # Get or create User
+            user, created = User.objects.get_or_create(phone_number=phone_number)
+            if name:
+                user.name = name
+            if email:
+                user.email = email
+            user.save()
+            
+            # Fetch Service and TimeSlot
+            service = Service.objects.get(id=service_id)
+            start_slot = TimeSlot.objects.get(id=time_slot_id)
+            
+            # Validate slots availability
+            all_slots = list(TimeSlot.objects.all().order_by('start_time'))
+            start_index = all_slots.index(start_slot)
+            required_slots = all_slots[start_index:start_index + duration_hours]
+            
+            if len(required_slots) < duration_hours:
+                return JsonResponse({'error': 'Not enough consecutive slots available'}, status=400)
+                
+            # Check if slots already taken
+            if Booking.objects.filter(time_slot__in=required_slots, date=date_obj, status__in=['pending', 'partial', 'paid']).exists():
+                return JsonResponse({'error': 'One or more selected slots are already booked'}, status=400)
+                
+            # Calculate pricing if total is 0.00
+            if total_payable == Decimal('0.00'):
+                total_payable = Decimal('0.00')
+                for slot in required_slots:
+                    if slot.start_time >= EVENING_START:
+                        total_payable += service.evening_pricing
+                    else:
+                        total_payable += service.price_per_hour
+                        
+            if amount_paid == Decimal('0.00') and status_choice in ['paid', 'partial']:
+                amount_paid = total_payable if status_choice == 'paid' else (total_payable / 2)
+                
+            booking = Booking.objects.create(
+                user=user,
+                service=service,
+                time_slot=start_slot,
+                date=date_obj,
+                duration_hours=duration_hours,
+                status=status_choice,
+                total_payable=total_payable,
+                amount_paid=amount_paid,
+                payment_type='full' if status_choice == 'paid' else 'partial'
+            )
+            
+            try:
+                send_booking_emails_task(booking.id)
+            except Exception as e:
+                logger.warning(f"Could not send email for admin created booking: {e}")
+                
+            return JsonResponse({
+                'success': True,
+                'message': 'Booking created successfully',
+                'booking': {
+                    'booking_id': str(booking.booking_id),
+                    'user': user.phone_number,
+                    'service': service.name,
+                    'date': str(booking.date),
+                    'time_slot': str(booking.time_slot),
+                    'status': booking.status
+                }
+            })
+            
+    except Exception as e:
+        logger.error(f"Error in admin_booking_create: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@staff_member_required
+@require_POST
+def admin_booking_cancel(request, booking_id):
+    try:
+        booking = get_object_or_404(Booking, booking_id=booking_id)
+        booking.status = 'cancelled'
+        booking.save()
+        return JsonResponse({'success': True, 'message': 'Booking cancelled successfully'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@staff_member_required
+@require_POST
+def admin_booking_delete(request, booking_id):
+    try:
+        booking = get_object_or_404(Booking, booking_id=booking_id)
+        booking.delete()
+        return JsonResponse({'success': True, 'message': 'Booking deleted successfully'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
